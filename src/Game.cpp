@@ -25,11 +25,13 @@ Game::~Game() = default;
 void Game::RegisterInputDevice(IInputDevice& i_inputDevice)
 {
 	m_gameControl->RegisterInputDevice(i_inputDevice);
+	m_connections.try_emplace(&i_inputDevice, i_inputDevice.sig_onInput.Connect(&UIManager::ProcessInput, m_uiManager.get()));
 }
 
 void Game::UnregisterInputDevice(IInputDevice& i_inputDevice)
 {
 	m_gameControl->UnregisterInputDevice(i_inputDevice);
+	m_connections.erase(&i_inputDevice);
 }
 
 void Game::FramePrologue(float i_elapsed)

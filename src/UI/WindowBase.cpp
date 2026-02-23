@@ -10,6 +10,7 @@ void WindowBase::Open()
 
 void WindowBase::Close()
 {
+	ClearInputRelays();
 	m_uiContext.windowManager.UnregisterWindow(*this);
 	m_uiContext.recursiveControl.exit(HashObject(this));
 	m_currentVisibility.clear();
@@ -34,6 +35,10 @@ void WindowBase::OnHide() const
 
 void WindowBase::AddUIComponent(utils::unique_ref<IUIComponent> i_uiComponent)
 {
+	if (const IInputRelay* inputRelay = dynamic_cast<const IInputRelay*>(i_uiComponent.get()))
+	{
+		AddInputRelay(*inputRelay);
+	}
 	m_uiComponents.push_back(std::move(i_uiComponent));
 }
 

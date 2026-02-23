@@ -1,11 +1,12 @@
 #pragma once
 
 #include "IWindow.h"
+#include "Control/InputRelay.h"
 #include "UI/visibility_flag.h"
 
 class WindowManager;
 
-class WindowBase : public IWindow
+class WindowBase : public IWindow, public InputRelay
 {
 public:
 	using IWindow::IWindow;

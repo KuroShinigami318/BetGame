@@ -32,5 +32,5 @@ private:
 	utils::unique_ref<class GameControl> m_gameControl;
 	utils::unique_ref<WindowManager> m_windowManager;
 	utils::unique_ref<class UIManager> m_uiManager;
-	std::vector<utils::Connection> m_connections;
+	std::unordered_map<IInputDevice*, utils::Connection> m_connections;
 };

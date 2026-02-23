@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "UI/UIManager.h"
 #include "UI/IUIComponent.h"
+#include "Control/IInputRelay.h"
 #include "DisplayInfo.h"
 
 #include "details/platforms.h"
@@ -84,4 +85,20 @@ const UIContext& UIManager::GetUIContext() const
 const DisplayInfo& UIManager::GetDisplayInfo() const
 {
 	return *m_displayInfo;
+}
+
+bool UIManager::ProcessInput(const std::string& input)
+{
+	for (const IUIComponent* uiComponent : m_uiComponents)
+	{
+		if (const IInputRelay* inputRelay = dynamic_cast<const IInputRelay*>(uiComponent))
+		{
+			if (inputRelay->ProcessInput(input))
+			{
+				break;
+			}
+		}
+	}
+
+	return true;
 }

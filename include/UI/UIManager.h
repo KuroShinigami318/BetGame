@@ -22,6 +22,7 @@ public:
 	void Render(RendererT& o_renderStream) const;
 	const UIContext& GetUIContext() const override;
 	const DisplayInfo& GetDisplayInfo() const override;
+	bool ProcessInput(const std::string& input);
 
 private:
 	std::vector<const IUIComponent*> m_uiComponents;
