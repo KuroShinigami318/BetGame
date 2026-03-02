@@ -15,8 +15,10 @@ public:
 	bool IsOpened() const override;
 	void OnShow() const override;
 	void OnHide() const override;
-	void AddUIComponent(utils::unique_ref<IUIComponent> i_uiComponent) override;
+	IUIComponent& AddUIComponent(utils::unique_ref<IUIComponent> i_uiComponent) override;
+	RetrieveResult RetrieveUIComponent(IUIComponent& i_uiComponent) override;
 	void Render(RendererT& o_renderStream) const override;
+	bool ProcessInputImpl(const std::string& input) const override;
 
 protected:
 	std::vector<utils::unique_ref<IUIComponent>> m_uiComponents;

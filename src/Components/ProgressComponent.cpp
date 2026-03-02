@@ -40,6 +40,10 @@ const float& ProgressComponent::GetMaxProgress() const
 
 void ProgressComponent::Render(RendererT& o_renderStream) const
 {
+	utils::Epilogue epilogue([&o_renderStream]()
+	{
+		o_renderStream << std::endl << "\033[1G";
+	});
 	utils::Log::TextFormat progressStyle{ utils::Log::TextStyle::Italic, utils::RGBColor{0, 255, 0} };
 	o_renderStream << FormatText("[", progressStyle);
 	for (float i = 0; i < m_maxProgress; ++i)
@@ -60,7 +64,6 @@ void ProgressComponent::Render(RendererT& o_renderStream) const
 		return;
 	}
 	o_renderStream << FormatText(utils::Format(" {}%", (m_progress / m_maxProgress) * 100.f).c_str(), progressStyle);
-	o_renderStream << std::endl << "\033[1G";
 }
 
 utils::unique_ref<IComponent> ProgressComponent::Clone()

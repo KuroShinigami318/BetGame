@@ -4,6 +4,7 @@
 #include "IInputDevice.h"
 #include "Game.h"
 #include "Log.h"
+#include "MacrosUtils.h"
 
 void ClearRender()
 {
@@ -13,6 +14,7 @@ void ClearRender()
 
 Application::Application(utils::unique_ref<utils::IHeartBeats> i_heart)
     : m_isExiting(false), m_exitReason(ExitReason::_COUNT)
+    , m_multiplier(1)
     , m_actualElapsed(0)
     , m_heart(std::move(i_heart))
     , m_frameThread({ &Application::FramePrologue, this }, { &Application::FrameEpilogue, this })
@@ -47,7 +49,7 @@ void Application::Execute()
     {
         m_actualElapsed = utils::steady_clock::now() - beginFrameTimePoint;
         beginFrameTimePoint = utils::steady_clock::now();
-        m_frameThread.Submit(GetElapsedSeconds());
+        m_frameThread.Submit(GetElapsedSeconds() * m_multiplier);
         m_mainQueue.dispatch();
         {
             Render();
@@ -68,9 +70,9 @@ void Application::Execute()
         RequestExit(ExitReason::_COUNT);
         goto START;
     }
+	SyncWithFrameThread();
     utils::async(GetNextFrameMessageQueue(), &Application::DestroyGame, this);
-    m_frameThread.Submit(GetElapsedSeconds());
-    m_frameThread.Wait();
+	SyncWithFrameThread();
 }
 
 void Application::RequestExit(ExitReason i_reason)
@@ -110,15 +112,24 @@ void Application::RegisterInputDevice(IInputDevice& i_inputDevice)
         utils::async(m_mainQueue, &Application::RegisterInputDevice, this, i_inputDevice);
     }
     m_connections.push_back(i_inputDevice.sig_onQuit.Connect(&Application::RequestExit, this, ExitReason::Exit));
-    m_connections.push_back(i_inputDevice.sig_onInput.Connect(
+    NOT_RELEASE(m_connections.push_back(i_inputDevice.sig_onInput.Connect(
         [this](std::string input)
         {
             if (input.find("r") != std::string::npos)
             {
                 RequestExit(ExitReason::Reload);
+                m_multiplier = 1.f;
+            }
+            else if (input.find("+") != std::string::npos)
+            {
+               m_multiplier *= 2.f;
+            }
+            else if (input.find("-") != std::string::npos)
+            {
+               m_multiplier *= 0.5f;
             }
             return true;
-        }));
+        }));)
     if (m_game)
     {
         utils::async(GetNextFrameMessageQueue(), &Game::RegisterInputDevice, m_game.get(), i_inputDevice);
@@ -155,11 +166,12 @@ Application::FrameResult Application::FrameEpilogue() const
 
 void Application::CreateGame()
 {
-    m_game = std::make_unique<Game>(GetNextFrameMessageQueue(), GetThisFrameMessageQueue(), GetRecursiveControl());
+    m_game = std::make_unique<Game>(RequestExitCallbackT(&Application::RequestExit, this), GetNextFrameMessageQueue(), GetThisFrameMessageQueue(), GetRecursiveControl());
 }
 
 void Application::DestroyGame()
 {
+    m_connections.clear();
     m_game.reset();
 }
 
@@ -175,4 +187,10 @@ void Application::Render()
         std::cout << m_frameResult.renderStream->str() << std::flush;
         m_previousFrameResult = std::move(m_frameResult);
     }
+}
+
+void Application::SyncWithFrameThread()
+{
+    m_frameThread.Submit(GetElapsedSeconds());
+    m_frameThread.Wait();
 }

@@ -1,5 +1,8 @@
 #include "stdafx.h"
 #include "UI/WindowBase.h"
+#include "Control/ActionCode.h"
+#include "UI/IUIManager.h"
+#include "UI/IWindowError.h"
 #include "UI/WindowManager.h"
 
 void WindowBase::Open()
@@ -33,13 +36,25 @@ void WindowBase::OnHide() const
 	m_currentVisibility.unset(visibility_flag::visible);
 }
 
-void WindowBase::AddUIComponent(utils::unique_ref<IUIComponent> i_uiComponent)
+IUIComponent& WindowBase::AddUIComponent(utils::unique_ref<IUIComponent> i_uiComponent)
 {
 	if (const IInputRelay* inputRelay = dynamic_cast<const IInputRelay*>(i_uiComponent.get()))
 	{
 		AddInputRelay(*inputRelay);
 	}
-	m_uiComponents.push_back(std::move(i_uiComponent));
+	return *m_uiComponents.emplace_back(std::move(i_uiComponent));
+}
+
+IWindow::RetrieveResult WindowBase::RetrieveUIComponent(IUIComponent& i_uiComponent)
+{
+	auto foundComponentIt = std::find(m_uiComponents.begin(), m_uiComponents.end(), &i_uiComponent);
+	if (foundComponentIt == m_uiComponents.end())
+	{
+		return make_error<IWindowError>(IWindowErrorCode::ComponentNotFound);
+	}
+	utils::unique_ref<IUIComponent> retrievedComponent = std::move(*foundComponentIt);
+	m_uiComponents.erase(foundComponentIt);
+	return retrievedComponent;
 }
 
 void WindowBase::Render(RendererT& o_renderStream) const
@@ -48,4 +63,19 @@ void WindowBase::Render(RendererT& o_renderStream) const
 	{
 		uiComponent->Render(o_renderStream);
 	}
+}
+
+bool WindowBase::ProcessInputImpl(const std::string& input) const
+{
+	std::vector<std::string> inputActionMap = m_uiContext.uiManager.GetInputActionMap(ActionCode::Back);
+	for (const std::string& inputAction : inputActionMap)
+	{
+		if (input == inputAction)
+		{
+			const_cast<WindowBase&>(*this).Close();
+			return true;
+		}
+	}
+
+	return false;
 }

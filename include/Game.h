@@ -9,10 +9,14 @@ struct SystemClock;
 class IInputDevice;
 class WindowManager;
 
+enum class ExitReason : uint8_t;
+
+using RequestExitCallbackT = utils::CallableBound<void(ExitReason)>;
+
 class Game
 {
 public:
-	Game(utils::MessageSink_mt& i_nextFrameQueue, utils::MessageSink& i_thisFrameQueue, utils::IRecursiveControl& i_recursiveControl);
+	Game(RequestExitCallbackT i_requestExitCallback, utils::MessageSink_mt& i_nextFrameQueue, utils::MessageSink& i_thisFrameQueue, utils::IRecursiveControl& i_recursiveControl);
 	~Game();
 	void RegisterInputDevice(IInputDevice& i_inputDevice);
 	void UnregisterInputDevice(IInputDevice& i_inputDevice);
@@ -25,6 +29,7 @@ private:
 	void Run();
 
 private:
+	RequestExitCallbackT m_requestExitCallback;
 	utils::MessageSink_mt& m_nextFrameQueue;
 	utils::MessageSink& m_thisFrameQueue;
 	utils::IRecursiveControl& m_recursiveControl;
@@ -32,5 +37,7 @@ private:
 	utils::unique_ref<class GameControl> m_gameControl;
 	utils::unique_ref<WindowManager> m_windowManager;
 	utils::unique_ref<class UIManager> m_uiManager;
+	utils::unique_ref<class ICommandManager> m_commandManager;
 	std::unordered_map<IInputDevice*, utils::Connection> m_connections;
+	bool m_canLoad = true;
 };

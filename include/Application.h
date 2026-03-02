@@ -1,5 +1,6 @@
 #pragma once
 #include "FrameThread.h"
+#include "ExitReason.h"
 
 class IInputDevice;
 
@@ -13,7 +14,6 @@ private:
     struct SignalKey;
 
 public:
-    DeclareScopedEnum(ExitReason, uint8_t, Reload, Exit);
     using MessageType = utils::CallableBound<void()>;
 
     Application() = delete;
@@ -37,8 +37,10 @@ private:
     void CreateGame();
     void DestroyGame();
     void Render();
+	void SyncWithFrameThread();
 
     bool m_isExiting;
+    float m_multiplier;
     ExitReason m_exitReason;
     std::optional<MessageType> m_optExitCallback;
     utils::MessageSink_mt m_mainQueue;
@@ -52,4 +54,3 @@ private:
     std::vector<utils::Connection> m_connections;
     std::unique_ptr<class Game> m_game;
 };
-DefineScopeEnumOperatorImpl(ExitReason, Application);

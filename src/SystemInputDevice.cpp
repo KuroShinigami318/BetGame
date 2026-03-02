@@ -14,6 +14,11 @@ SystemInputDevice::SystemInputDevice(InputMode i_inputMode, utils::IMessageQueue
     utils::async(m_inputThread, &SystemInputDevice::OnRun, this);
 }
 
+SystemInputDevice::~SystemInputDevice()
+{
+	m_inputThread.terminate();
+}
+
 std::string SystemInputDevice::GetTextReceived(utils::IYielder* i_yielder) const
 {
     m_isInputRequested = true;
@@ -51,6 +56,7 @@ void SystemInputDevice::OnRun()
         m_inputRequest = m_inputVar;
         m_cv.notify_one();
     }
+#if !defined(_RELEASE)
     if (m_inputVar.find(m_exitStrToken) != m_inputVar.npos)
     {
         utils::secs elapsedSeconds = std::chrono::duration_cast<utils::secs>(utils::timepoint::clock::now() - m_startTime);
@@ -59,6 +65,7 @@ void SystemInputDevice::OnRun()
         waitable.Cancel();
     }
     else
+#endif
     {
         utils::async_waitable<bool> processWaitable = utils::Access<AccessKey>(sig_onInput).EmitAsync(m_inputVar);
         if (auto processResult = processWaitable.GetResult(); processResult.isOk() && !processResult.unwrap())

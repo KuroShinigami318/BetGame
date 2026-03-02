@@ -1,21 +1,26 @@
 #include "stdafx.h"
 #include "Game.h"
+#include "CommandManager.h"
 #include "Control/GameControl.h"
 #include "DisplayInfo.h"
+#include "ExitReason.h"
 #include "IInputDevice.h"
 #include "UI/UIManager.h"
 #include "UI/WindowManager.h"
 #include "UI/Screens/SplashscreenWindow.h"
+#include "UI/StartGameFlow.h"
 #include "system_clock.h"
 
-Game::Game(utils::MessageSink_mt& i_nextFrameQueue, utils::MessageSink& i_thisFrameQueue, utils::IRecursiveControl& i_recursiveControl)
-	: m_nextFrameQueue(i_nextFrameQueue)
+Game::Game(RequestExitCallbackT i_requestExitCallback, utils::MessageSink_mt& i_nextFrameQueue, utils::MessageSink& i_thisFrameQueue, utils::IRecursiveControl& i_recursiveControl)
+	: m_requestExitCallback(i_requestExitCallback)
+	, m_nextFrameQueue(i_nextFrameQueue)
 	, m_thisFrameQueue(i_thisFrameQueue)
 	, m_recursiveControl(i_recursiveControl)
 	, m_systemClock(new utils::SystemClock())
 	, m_gameControl(new GameControl())
 	, m_windowManager(new WindowManager())
 	, m_uiManager(new UIManager(i_thisFrameQueue, i_nextFrameQueue, i_recursiveControl, *m_systemClock, *m_windowManager))
+	, m_commandManager(new CommandManager())
 {
 	utils::async(m_thisFrameQueue, &Game::Run, this);
 }
@@ -47,7 +52,7 @@ void Game::FrameEpilogue(RendererT& o_renderStream) const
 void Game::OnReload()
 {
 	m_windowManager->CloseAllWindows();
-	utils::async(m_thisFrameQueue, &Game::Run, this);
+	m_canLoad = true;
 }
 
 void Game::OnExit()
@@ -57,6 +62,13 @@ void Game::OnExit()
 
 void Game::Run()
 {
-	SplashscreenWindow splashscreenWindow(m_uiManager->GetUIContext(), 0.4f * m_uiManager->GetDisplayInfo().width);
-	splashscreenWindow.Open();
+	while (m_canLoad)
+	{
+		m_canLoad = false;
+		SplashscreenWindow splashscreenWindow(m_uiManager->GetUIContext(), 0.4f * m_uiManager->GetDisplayInfo().width);
+		StartGameFlow startGameFlow(splashscreenWindow, *m_commandManager);
+		splashscreenWindow.AddInputRelay(startGameFlow);
+		splashscreenWindow.Open();
+	}
+	m_requestExitCallback(ExitReason::Exit);
 }

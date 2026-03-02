@@ -8,6 +8,7 @@ public:
 
 public:
     SystemInputDevice(InputMode i_inputMode, utils::IMessageQueue& i_inputQueue);
+	~SystemInputDevice();
     std::string GetTextReceived(utils::IYielder* i_yielder = nullptr) const override;
 
 private:
