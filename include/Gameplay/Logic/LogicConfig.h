@@ -2,8 +2,8 @@
 
 struct LogicConfig
 {
-	float normBidHitRate = 0.5f;
+	float normBidHitRate = 1.f;
 	float defaultHitRate = 0.5f;
-	float hitRateStep = 0.05f;
+	float hitRateStep = 0.01f;
 	uint32_t defaultBid = 1000;
 };

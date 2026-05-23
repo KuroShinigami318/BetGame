@@ -66,7 +66,7 @@ struct AnimableComponentHolder
 
 StageLogic::StageLogic(utils::unique_ref<LogicConfig>&& i_logicConfig)
 	: m_finishedAnimationRemaining(0)
-	, m_randomGenerator({ {1, 0.5}, {2, 0.005} }, m_randomGeneratorErrorCode)
+	, m_randomGenerator({ {2, 0.5} }, m_randomGeneratorErrorCode)
 	, m_logicConfig(std::move(i_logicConfig))
 	, m_totalBid(0)
 	, m_totalMultiplier(0)
@@ -125,53 +125,33 @@ std::unique_ptr<IStageLogic::RollResult> StageLogic::RollCards(bool i_ignoreHitR
 		return nullptr;
 	}
 
-	uint32_t bidSum = 0, minRoll = (uint32_t)-1;
+	int bidSum = 0;
 	size_t winningCardIndex = -1;
-	std::vector<size_t> maximumRateCardIndices;
-	float maxHitRate = 0.f;
-	maximumRateCardIndices.reserve(m_cardComponents.size());
+	float totalHitRate = 0.f;
+	std::vector<RandomGeneratorT::weight_type> specialWeights;
 	for (size_t index = 0; index < m_cardComponents.size(); ++index)
 	{
 		ICard* card = m_cardComponents[index];
 		const float delta = float(card->GetBid() * card->GetMultiplierValue()) / (m_totalBid * m_totalMultiplier);
-		const float hitRate = delta > 0 ? m_logicConfig->normBidHitRate * (1.f - delta) : m_logicConfig->defaultHitRate;
-		if (i_ignoreHitRate)
+		const float hitRate = i_ignoreHitRate ? 1.0f : (m_logicConfig->normBidHitRate * (1.f - delta)) / (m_cardComponents.size() / 2);
+		if (delta > 0)
 		{
-			card->SetRate(1.0f);
+			totalHitRate += hitRate;
+			specialWeights.emplace_back((uint16_t)index, hitRate);
 		}
-		else
+		if (totalHitRate > 1.f)
 		{
-			card->SetRate(hitRate);
-		}
-		if (hitRate > maxHitRate)
-		{
-			maximumRateCardIndices.clear();
-			maxHitRate = hitRate;
-		}
-		if (hitRate == maxHitRate)
-		{
-			maximumRateCardIndices.emplace_back(index);
-		}
-		std::optional<uint32_t> roll = card->Roll();
-		if (!roll.has_value())
-		{
-			continue;
-		}
-		if (*roll > 0 && minRoll > *roll)
-		{
-			bidSum = minRoll = *roll;
-			winningCardIndex = index;
+			specialWeights.pop_back();
+			break;
 		}
 	}
-	if (winningCardIndex == -1)
-	{
-		utils::RandomGenerator randomGenerator;
-		winningCardIndex = maximumRateCardIndices[randomGenerator() % maximumRateCardIndices.size()];
-		bidSum = m_cardComponents[winningCardIndex]->GetBid() * m_cardComponents[winningCardIndex]->GetMultiplierValue();
-	}
-	m_totalBid -= m_cardComponents[winningCardIndex]->GetBid();
+	m_rollGenerator.SetSpecialWeights(specialWeights, m_randomGeneratorErrorCode);
+	m_rollGenerator.BuildDiscreteDistribution(0, (uint16_t)m_cardComponents.size() - 1, m_randomGeneratorErrorCode);
+	ASSERT(m_randomGeneratorErrorCode == RandomGeneratorT::ErrorCode::None);
+	winningCardIndex = m_rollGenerator();
+	bidSum = m_cardComponents[winningCardIndex]->GetBid() * m_cardComponents[winningCardIndex]->GetMultiplierValue();
 	utils::Access<SignalKey>(sig_onStagePhaseChanged).Emit(logic::StagePhase::RollStarted);
-	utils::Access<SignalKey>(sig_onBidChanged).Emit(static_cast<int>(bidSum));
+	utils::Access<SignalKey>(sig_onBidChanged).Emit(bidSum);
 	return std::make_unique<RollFinishedResult>(*this, winningCardIndex);
 }
 
@@ -181,7 +161,7 @@ void StageLogic::Reset(bool shouldDecreaseHitRate)
 	if ((m_randomGenerator.max)() < requiredDistributionSize)
 	{
 		RandomGeneratorT::ErrorCode errorCode;
-		m_randomGenerator.BuildDiscreteDistribution(1, requiredDistributionSize, errorCode);
+		m_randomGenerator.BuildDiscreteDistribution(RandomGeneratorT::defaultMinVal, requiredDistributionSize, errorCode);
 	}
 	//std::unordered_set<uint16_t> uniqueRolls;
 	m_totalBid = 0;
@@ -196,7 +176,11 @@ void StageLogic::Reset(bool shouldDecreaseHitRate)
 
 	if (shouldDecreaseHitRate)
 	{
-		m_logicConfig->normBidHitRate = (std::max)(m_logicConfig->normBidHitRate - m_logicConfig->hitRateStep, m_logicConfig->hitRateStep / m_logicConfig->hitRateStep);
+		m_logicConfig->normBidHitRate -= m_logicConfig->hitRateStep;
+		if (m_logicConfig->normBidHitRate <= 0.f)
+		{
+			m_logicConfig->normBidHitRate = m_logicConfig->defaultHitRate;
+		}
 	}
 }
 

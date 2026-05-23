@@ -3,6 +3,7 @@
 #include "Control/ActionCode.h"
 #include "UI/IUIManager.h"
 #include "Gameplay/Logic/StagePhase.h"
+#include "MacrosUtils.h"
 #include "attribute.h"
 #include "TimerDelayer.h"
 #include "system_clock.h"
@@ -59,11 +60,12 @@ bool Stage::ProcessInput(const std::string& i_input) const
 	static bool toggleIgnoreHitRate = false;
 	switch (i_input[0])
 	{
+	NOT_RELEASE(
 	case 'i':
 	{
 		toggleIgnoreHitRate = !toggleIgnoreHitRate;
 		return true;
-	}
+	})
 	default:
 	if (i_input[0] > '0' && i_input[0] <= '9')
 	{

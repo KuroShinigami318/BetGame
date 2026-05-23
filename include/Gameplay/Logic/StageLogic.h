@@ -9,7 +9,7 @@ struct LogicConfig;
 class StageLogic : public IStageLogic
 {
 private:
-	using RandomGeneratorT = utils::RandomGenerator<uint16_t, 1, sizeof(uint16_t), std::mt19937, std::discrete_distribution<uint16_t>>;
+	using RandomGeneratorT = utils::RandomGenerator<uint16_t, 2, sizeof(uint16_t), std::mt19937, std::discrete_distribution<uint16_t>>;
 
 public:
 	StageLogic(utils::unique_ref<LogicConfig>&&);
@@ -32,6 +32,7 @@ private:
 	long long m_finishedAnimationRemaining;
 	RandomGeneratorT::ErrorCode m_randomGeneratorErrorCode;
 	RandomGeneratorT m_randomGenerator;
+	RandomGeneratorT m_rollGenerator;
 	utils::unique_ref<LogicConfig> m_logicConfig;
 	uint32_t m_totalBid;
 	uint32_t m_totalMultiplier;
