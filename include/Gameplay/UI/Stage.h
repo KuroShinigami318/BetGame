@@ -33,9 +33,10 @@ private:
 	bool m_isRollStarted;
 	bool m_isOnAnimation;
 	bool m_isOnLocalAnimation;
-	float m_currentIndex;
+	std::optional<float> m_currentIndex;
 	utils::unique_ref<utils::TimerDelayer> m_animationDelayer;
 	std::vector<utils::unique_ref<IUIComponent>> m_cardComponents;
 	std::vector<utils::Connection> m_connections;
 	std::unique_ptr<IStageLogic::RollResult> m_currentRollResult;
+	utils::unique_ref<IRenderStyle> m_winInfoRenderStyle;
 };

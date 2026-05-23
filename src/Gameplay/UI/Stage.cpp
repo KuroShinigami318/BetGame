@@ -2,6 +2,7 @@
 #include "Gameplay/UI/Stage.h"
 #include "Control/ActionCode.h"
 #include "UI/IUIManager.h"
+#include "UI/LabelRenderStyle.h"
 #include "Gameplay/Logic/StagePhase.h"
 #include "MacrosUtils.h"
 #include "attribute.h"
@@ -12,6 +13,7 @@ namespace
 {
 constexpr const float LOCAL_ANIMATION_DURATION = 3000.f;
 constexpr const float ANIMATION_SPEED = 3.f;
+constexpr const uint16_t WIN_INFO_HEIGHT = 3;
 }
 
 Stage::Stage(const UIContext& i_uiContext, IStageLogic& i_stageLogic, const uint16_t& i_width, const uint16_t& i_height)
@@ -22,8 +24,9 @@ Stage::Stage(const UIContext& i_uiContext, IStageLogic& i_stageLogic, const uint
 	, m_isRollStarted(false)
 	, m_isOnAnimation(false)
 	, m_isOnLocalAnimation(false)
-	, m_currentIndex(0.f)
+	, m_currentIndex(std::nullopt)
 	, m_animationDelayer(utils::make_unique<utils::TimerDelayer>(LOCAL_ANIMATION_DURATION))
+	, m_winInfoRenderStyle(utils::make_unique<LabelRenderStyle>())
 {
 	m_animationDelayer->Stop();
 	m_connections.push_back(m_uiContext.systemClock.sig_onTick.Connect(&Stage::Update, this));
@@ -40,6 +43,16 @@ void Stage::AddCardComponent(utils::unique_ref<IUIComponent> i_cardComponent)
 
 void Stage::SetRenderStyle(utils::unique_ref<IRenderStyle> i_renderStyle)
 {
+	struct text{} _text;
+	m_winInfoRenderStyle->BindAttribute("width", utils::attribute::make_bind_attribute(m_width));
+	m_winInfoRenderStyle->BindAttribute("height", utils::attribute::make_bind_attribute(WIN_INFO_HEIGHT));
+	m_winInfoRenderStyle->BindAttribute("text", utils::attribute::make_value_attribute(_text,
+	{
+		[this](const text&)
+		{
+			return utils::Format("Card #{} won!", m_currentIndex.has_value() ? (size_t(m_currentIndex.value()) % m_cardComponents.size()) + 1 : 0);
+		}
+	}));
 	i_renderStyle->BindAttribute("width", utils::attribute::make_bind_attribute(m_width));
 	i_renderStyle->BindAttribute("height", utils::attribute::make_bind_attribute(m_height));
 	i_renderStyle->BindAttribute("cardComponents", utils::attribute::make_bind_attribute(m_cardComponents, {nullptr}));
@@ -48,11 +61,12 @@ void Stage::SetRenderStyle(utils::unique_ref<IRenderStyle> i_renderStyle)
 
 void Stage::Render(RendererT& o_renderStream) const
 {
+	m_winInfoRenderStyle->Render(o_renderStream);
+	o_renderStream << utils::Format("\033[{}B", WIN_INFO_HEIGHT);
 	if (m_renderStyle)
 	{
 		m_renderStyle->Render(o_renderStream);
 	}
-	o_renderStream << utils::Format("\033[{}B", m_height);
 }
 
 bool Stage::ProcessInput(const std::string& i_input) const
@@ -82,7 +96,9 @@ bool Stage::ProcessInput(const std::string& i_input) const
 			{
 				if (const_cast<Stage*>(this)->m_currentRollResult = m_stageLogic.RollCards(toggleIgnoreHitRate))
 				{
-					const_cast<Stage*>(this)->m_isRollStarted = true;
+					Stage* _this = const_cast<Stage*>(this);
+					_this->m_currentIndex = 0.f;
+					_this->m_isRollStarted = true;
 					return true;
 				}
 			}
@@ -105,26 +121,25 @@ void Stage::Update(float delta)
 	{
 		return;
 	}
-	size_t currentCardIndex = size_t(m_currentIndex) % m_cardComponents.size();
+	size_t currentCardIndex = size_t(m_currentIndex.value()) % m_cardComponents.size();
 	if (!m_isOnLocalAnimation && currentCardIndex == m_currentRollResult->winningCardIndex)
 	{
 		m_currentRollResult.reset();
 		return;
 	}
 	m_cardComponents[currentCardIndex]->OnFocusLost();
-	m_currentIndex += delta * ANIMATION_SPEED;
-	m_cardComponents[size_t(m_currentIndex) % m_cardComponents.size()]->OnFocusGained();
+	*m_currentIndex += delta * ANIMATION_SPEED;
+	m_cardComponents[size_t(m_currentIndex.value()) % m_cardComponents.size()]->OnFocusGained();
 }
 
 void Stage::OnAnimtionFinished()
 {
 	m_isOnAnimation = false;
-	m_cardComponents[size_t(m_currentIndex) % m_cardComponents.size()]->OnFocusLost();
-	m_currentIndex = 0.f;
 	if (m_isRollStarted)
 	{
-		m_isRollStarted = false;
+		m_cardComponents[size_t(m_currentIndex.value()) % m_cardComponents.size()]->OnFocusLost();
 		m_stageLogic.Reset(true);
+		m_isRollStarted = false;
 	}
 }
 
