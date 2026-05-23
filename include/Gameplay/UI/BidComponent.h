@@ -25,6 +25,7 @@ private:
 	void OnStagePhaseChanged(const logic::StagePhase& i_newStagePhase);
 	void Update(float);
 	void FinishBidAnimation();
+	void FinishUpdateBid();
 
 private:
 	IStageLogic& m_stageLogic;

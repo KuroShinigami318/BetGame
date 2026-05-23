@@ -66,6 +66,18 @@ void BidComponent::OnStagePhaseChanged(const logic::StagePhase& i_newStagePhase)
 	{
 		m_currentStagePhase = i_newStagePhase;
 	}
+	switch (m_currentStagePhase)
+	{
+	case logic::StagePhase::RollStarted:
+	{
+		if (m_optNewBid.has_value())
+		{
+			FinishUpdateBid();
+		}
+		break;
+	}
+	default: break;
+	}
 }
 
 void BidComponent::Update(float i_delta)
@@ -89,10 +101,15 @@ void BidComponent::Update(float i_delta)
 }
 
 void BidComponent::FinishBidAnimation()
-{
+{	
 	m_accumulatedRatio = 0.f;
+	FinishUpdateBid();
+	utils::Access<IAnimable::SignalKey>(sig_onAnimationFinished).Emit();
+}
+
+void BidComponent::FinishUpdateBid()
+{
 	m_bid = *m_optNewBid;
 	m_optOldBid.reset();
 	m_optNewBid.reset();
-	utils::Access<IAnimable::SignalKey>(sig_onAnimationFinished).Emit();
 }

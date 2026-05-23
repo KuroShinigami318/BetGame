@@ -57,10 +57,6 @@ void Stage::Render(RendererT& o_renderStream) const
 bool Stage::ProcessInput(const std::string& i_input) const
 {
 	static bool toggleIgnoreHitRate = false;
-	if (m_isOnAnimation)
-	{
-		return false;
-	}
 	switch (i_input[0])
 	{
 	case 'i':
