@@ -28,6 +28,7 @@ public:
 	const DisplayInfo& GetDisplayInfo() const override;
 	bool ProcessInput(const std::string& input);
 	std::vector<std::string> GetInputActionMap(ActionCode) const override;
+	bool IsInputAction(const std::string& i_inputAction, ActionCode i_actionCode) const override;
 
 	// IAttributesMap implementation
 	void BindAttribute(const std::string& i_key, const utils::attribute& i_attribute) override;

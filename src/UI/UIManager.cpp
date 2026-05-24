@@ -163,6 +163,17 @@ std::vector<std::string> UIManager::GetInputActionMap(ActionCode i_actionCode) c
 	return mapFoundIt != m_inputActionMap.end() ? mapFoundIt->second : std::vector<std::string>{};
 }
 
+bool UIManager::IsInputAction(const std::string& i_inputAction, ActionCode i_actionCode) const
+{
+	auto mapFoundIt = m_inputActionMap.find(i_actionCode);
+	if (mapFoundIt != m_inputActionMap.end())
+	{
+		const auto& actions = mapFoundIt->second;
+		return std::find(actions.begin(), actions.end(), i_inputAction) != actions.end();
+	}
+	return false;
+}
+
 void UIManager::BindAttribute(const std::string& i_key, const utils::attribute& i_attribute)
 {
 	m_attributesMap->BindAttribute(i_key, i_attribute);

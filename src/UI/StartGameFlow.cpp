@@ -26,16 +26,7 @@ StartGameFlow::StartGameFlow(IWindow& i_splashscreenWindow, ICommandManager& i_c
 
 bool StartGameFlow::ProcessInput(const std::string& i_input) const
 {
-	std::vector<std::string> inputActionMap = m_splashscreenWindow.GetUIContext().uiManager.GetInputActionMap(ActionCode::Enter);
-	for (const std::string& inputAction : inputActionMap)
-	{
-		if (i_input == inputAction)
-		{
-			return m_isEnterPressed = true;
-		}
-	}
-
-	return false;
+	return m_isEnterPressed = m_splashscreenWindow.GetUIContext().uiManager.IsInputAction(i_input, ActionCode::Enter);
 }
 
 void StartGameFlow::StartGame()

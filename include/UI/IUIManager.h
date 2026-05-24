@@ -28,5 +28,6 @@ public:
 	virtual GetUIComponentResultT GetUIComponent(const UIComponentType&) const = 0;
 	virtual const DisplayInfo& GetDisplayInfo() const = 0;
 	virtual std::vector<std::string> GetInputActionMap(ActionCode) const = 0;
+	virtual bool IsInputAction(const std::string& i_inputAction, ActionCode i_actionCode) const = 0;
 };
 DefineScopeEnumOperatorImpl(ErrorCode, IUIManager)

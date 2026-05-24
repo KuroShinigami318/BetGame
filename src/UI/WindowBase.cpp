@@ -67,14 +67,10 @@ void WindowBase::Render(RendererT& o_renderStream) const
 
 bool WindowBase::ProcessInputImpl(const std::string& input) const
 {
-	std::vector<std::string> inputActionMap = m_uiContext.uiManager.GetInputActionMap(ActionCode::Back);
-	for (const std::string& inputAction : inputActionMap)
+	if (m_uiContext.uiManager.IsInputAction(input, ActionCode::Back))
 	{
-		if (input == inputAction)
-		{
-			const_cast<WindowBase&>(*this).Close();
-			return true;
-		}
+		const_cast<WindowBase&>(*this).Close();
+		return true;
 	}
 
 	return false;

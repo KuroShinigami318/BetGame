@@ -89,18 +89,14 @@ bool Stage::ProcessInput(const std::string& i_input) const
 	}
 	else
 	{
-		std::vector<std::string> inputActionMap = m_uiContext.uiManager.GetInputActionMap(ActionCode::Enter);
-		for (const std::string& inputAction : inputActionMap)
+		if (m_uiContext.uiManager.IsInputAction(i_input, ActionCode::Enter))
 		{
-			if (i_input == inputAction)
+			if (const_cast<Stage*>(this)->m_currentRollResult = m_stageLogic.RollCards(toggleIgnoreHitRate))
 			{
-				if (const_cast<Stage*>(this)->m_currentRollResult = m_stageLogic.RollCards(toggleIgnoreHitRate))
-				{
-					Stage* _this = const_cast<Stage*>(this);
-					_this->m_currentIndex = 0.f;
-					_this->m_isRollStarted = true;
-					return true;
-				}
+				Stage* _this = const_cast<Stage*>(this);
+				_this->m_currentIndex = 0.f;
+				_this->m_isRollStarted = true;
+				return true;
 			}
 		}
 	}
