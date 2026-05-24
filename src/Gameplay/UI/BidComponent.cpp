@@ -29,7 +29,8 @@ BidComponent::BidComponent(const UIContext& i_uiContext, IStageLogic& i_stageLog
 void BidComponent::SetBid(const int& i_bidDelta)
 {
 	m_optOldBid = float(m_bid);
-	m_optNewBid = float(m_bid + i_bidDelta);
+	float bid = m_optNewBid.has_value() ? *m_optNewBid : m_bid;
+	m_optNewBid = bid + i_bidDelta;
 }
 
 const int& BidComponent::GetBid() const
