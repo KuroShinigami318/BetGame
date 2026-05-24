@@ -133,7 +133,7 @@ std::unique_ptr<IStageLogic::RollResult> StageLogic::RollCards(bool i_ignoreHitR
 	{
 		ICard* card = m_cardComponents[index];
 		const float delta = float(card->GetBid() * card->GetMultiplierValue()) / (m_totalBid * m_totalMultiplier);
-		const float hitRate = i_ignoreHitRate ? 1.0f : (m_logicConfig->normBidHitRate * (1.f - delta)) / (m_cardComponents.size() / 2);
+		const float hitRate = i_ignoreHitRate ? 1.0f : (m_logicConfig->normBidHitRate * (1.f - delta)) / (m_cardComponents.size() / static_cast<float>(m_logicConfig->difficulty));
 		if (delta > 0)
 		{
 			totalHitRate += hitRate;
