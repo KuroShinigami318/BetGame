@@ -10,7 +10,6 @@ StageRenderStyle::StageRenderStyle(utils::unique_ref<IRenderStyle> i_cardRenderS
 
 void StageRenderStyle::Render(RendererT& o_renderStream) const
 {
-	using CardComponetsT = std::vector<utils::unique_ref<IUIComponent>>;
 	const CardComponetsT* cardComponents = nullptr;
 	const uint16_t* width = nullptr;
 	const uint16_t* height = nullptr;

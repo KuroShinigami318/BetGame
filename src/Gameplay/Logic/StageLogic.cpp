@@ -78,9 +78,15 @@ void StageLogic::UpdateLogicConfig(const LogicConfig& i_logicConfig)
 	*m_logicConfig = i_logicConfig;
 }
 
-void StageLogic::AddCardComponent(ICard& i_card)
+void StageLogic::ReserveCardComponentCount(const size_t& i_count)
 {
-	m_cardComponents.push_back(&i_card);
+	m_cardComponents.resize(i_count);
+}
+
+void StageLogic::SetCardComponent(ICard& i_card, const size_t& i_index)
+{
+	m_cardDestroyedConnections.push_back(i_card.sig_onComponentDestroyed.Connect(&StageLogic::OnCardDestroyed, this, i_index));
+	m_cardComponents[i_index] = &i_card;
 }
 
 void StageLogic::RegisterAnimableComponent(const IAnimable& i_animable)
@@ -132,6 +138,10 @@ std::unique_ptr<IStageLogic::RollResult> StageLogic::RollCards(bool i_ignoreHitR
 	for (size_t index = 0; index < m_cardComponents.size(); ++index)
 	{
 		ICard* card = m_cardComponents[index];
+		if (card == nullptr)
+		{
+			break;
+		}
 		const float delta = float(card->GetBid() * card->GetMultiplierValue()) / (m_totalBid * m_totalMultiplier);
 		const float hitRate = i_ignoreHitRate ? 1.0f : (m_logicConfig->normBidHitRate * (1.f - delta)) / (m_cardComponents.size() / static_cast<float>(m_logicConfig->difficulty));
 		if (delta > 0)
@@ -189,6 +199,11 @@ uint32_t StageLogic::GetDefaultBid() const
 	return m_logicConfig->defaultBid;
 }
 
+uint16_t StageLogic::GetCardCount() const
+{
+	return m_logicConfig->cardCount;
+}
+
 void StageLogic::OnAnimableComponentAnimationFinished(const IAnimable& i_animable)
 {
 	if (m_animableComponents.find(&i_animable) == m_animableComponents.end())
@@ -213,4 +228,13 @@ void StageLogic::OnAnimableComponentAnimationStarted(const IAnimable& i_animable
 	{
 		utils::Access<SignalKey>(sig_onAnimationStarted).Emit();
 	}
+}
+
+void StageLogic::OnCardDestroyed(size_t i_index)
+{
+	if (i_index >= m_cardComponents.size())
+	{
+		return;
+	}
+	m_cardComponents[i_index] = nullptr;
 }

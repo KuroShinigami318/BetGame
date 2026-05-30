@@ -14,12 +14,17 @@ enum class StagePhase : uint8_t;
 class BidComponent : public IBid, public IAnimable
 {
 public:
+	~BidComponent();
 	BidComponent(const UIContext& i_uiContext, IStageLogic& i_stageLogic, const uint16_t& i_width, const uint16_t& i_height);
 	void SetBid(const int&) override;
 	const int& GetBid() const override;
 	void SetRenderStyle(utils::unique_ref<IRenderStyle> i_renderStyle) override;
 	void Render(RendererT& o_renderStream) const override;
 	utils::unique_ref<IComponent> Clone() override;
+	void SetWidth(const uint16_t& i_width) override { m_width = i_width; }
+    void SetHeight(const uint16_t& i_height) override { m_height = i_height; }
+    uint16_t GetWidth() const override { return m_width; }
+    uint16_t GetHeight() const override { return m_height; }
 
 private:
 	void OnStagePhaseChanged(const logic::StagePhase& i_newStagePhase);

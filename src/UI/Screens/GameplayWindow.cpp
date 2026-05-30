@@ -9,7 +9,8 @@
 #include "attribute.h"
 
 GameplayWindow::GameplayWindow(const UIContext& i_uiContext, ILogicGameplayFactory& i_logicFactory, IUIGameplayFactory& i_uiGameplayFactory)
-	: WindowBase(i_uiContext)
+	: IUIComponent(i_uiContext)
+	, WindowBase(i_uiContext)
 	, m_logicFactory(i_logicFactory)
 	, m_uiGameplayFactory(i_uiGameplayFactory)
 	, m_stageLogic(i_logicFactory.CreateStageLogic())
@@ -37,17 +38,19 @@ bool GameplayWindow::ProcessInput(const std::string& input) const
 
 utils::unique_ref<IComponent> GameplayWindow::Clone()
 {
-	return utils::make_unique<GameplayWindow>(m_uiContext, m_logicFactory, m_uiGameplayFactory);
+	auto clone = utils::make_unique<GameplayWindow>(m_uiContext, m_logicFactory, m_uiGameplayFactory);
+	static_cast<WindowBase&>(*clone) = *this;
+	return clone;
 }
 
-void GameplayWindow::Close()
+void GameplayWindow::Close(const ResultT& i_result)
 {
 	while (!m_componentTypes.empty())
 	{
 		m_uiContext.uiManager.UnmapUIComponent(m_componentTypes.back()).assertSuccess();
 		m_componentTypes.pop_back();
 	}
-	WindowBase::Close();
+	WindowBase::Close(i_result);
 }
 
 void GameplayWindow::OnStagePhaseChanged(const logic::StagePhase& stagePhase)

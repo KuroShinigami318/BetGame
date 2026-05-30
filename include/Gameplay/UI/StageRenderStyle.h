@@ -5,7 +5,7 @@
 class StageRenderStyle : public IRenderStyle, public AttributesMap
 {
 private:
-	using CardComponetsT = std::vector<utils::unique_ref<class IUIComponent>>;
+	using CardComponetsT = std::vector<utils::unique_ptr<class IUIComponent>>;
 
 public:
 	StageRenderStyle(utils::unique_ref<IRenderStyle> i_cardRenderStyle);

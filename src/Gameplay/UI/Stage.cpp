@@ -36,9 +36,14 @@ Stage::Stage(const UIContext& i_uiContext, IStageLogic& i_stageLogic, const uint
 	m_connections.push_back(m_animationDelayer->sig_onExpired.Connect(&Stage::OnLocalAnimationFinished, this));
 }
 
-void Stage::AddCardComponent(utils::unique_ref<IUIComponent> i_cardComponent)
+void Stage::ReserveCardComponentCount(const size_t& i_count)
 {
-	m_cardComponents.push_back(std::move(i_cardComponent));
+	m_cardComponents.resize(i_count);
+}
+
+void Stage::SetCardComponent(utils::unique_ref<IUIComponent> i_cardComponent, const size_t& i_index)
+{
+	m_cardComponents[i_index] = std::move(i_cardComponent);
 }
 
 void Stage::SetRenderStyle(utils::unique_ref<IRenderStyle> i_renderStyle)

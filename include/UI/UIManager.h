@@ -11,12 +11,13 @@ struct SystemClock;
 
 class AttributesMap;
 class WindowManager;
+class ICommandManager;
 class IUIManager;
 
 class UIManager : public IUIManager
 {
 public:
-	UIManager(utils::IMessageQueue& i_thisFrameQueue, utils::IMessageQueue& i_nextFrameQueue, utils::IRecursiveControl& i_recursiveControl, const utils::SystemClock& i_systemClock, WindowManager& i_windowManager);
+	UIManager(utils::IMessageQueue& i_thisFrameQueue, utils::IMessageQueue& i_nextFrameQueue, utils::IRecursiveControl& i_recursiveControl, const utils::SystemClock& i_systemClock, WindowManager& i_windowManager, ICommandManager& i_commandManager);
 	~UIManager();
 	ResultT RegisterUIComponent(const IUIComponent&) override;
 	ResultT UnregisterUIComponent(const IUIComponent&) override;

@@ -47,13 +47,11 @@ void CardRenderStyle::OnThisRenderStyleApplied() const
 
 void CardRenderStyle::Render(RendererT& o_renderStream) const
 {
-	static utils::attribute isFocusedAttr = utils::attribute::make_attribute<bool>(false);
-	const bool* isFocused = nullptr;
-	GetAttributeOrDefault("isFocused", isFocusedAttr).get<bool>(isFocused).ignoreResult();
-	if (*isFocused)
+	utils::attribute* textFormatAttr = GetAttribute("text_format");
+	if (textFormatAttr)
 	{
-		m_titleRenderStyle->BindAttribute("text_format", utils::attribute::make_attribute<utils::Log::TextFormat>(utils::Log::TextStyle::Bold, utils::RGBColor(255, 255, 0)));
-		m_bodyRenderStyle->BindAttribute("text_format", utils::attribute::make_attribute<utils::Log::TextFormat>(utils::Log::TextStyle::Bold, utils::RGBColor(255, 255, 0)));
+		m_titleRenderStyle->BindAttribute("text_format", *textFormatAttr);
+		m_bodyRenderStyle->BindAttribute("text_format", *textFormatAttr);
 	}
 	else
 	{

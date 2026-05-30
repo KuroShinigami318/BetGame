@@ -11,6 +11,11 @@ namespace
 constexpr const float BID_CHANGE_SPEED = 1.f;
 }
 
+BidComponent::~BidComponent()
+{
+	m_stageLogic.UnregisterAnimableComponent(*this);
+}
+
 BidComponent::BidComponent(const UIContext& i_uiContext, IStageLogic& i_stageLogic, const uint16_t& i_width, const uint16_t& i_height)
 	: IBid(i_uiContext)
 	, m_stageLogic(i_stageLogic)

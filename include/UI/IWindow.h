@@ -1,18 +1,24 @@
 #pragma once
 
-#include "IUIComponent.h"
+#include "Components/IContainer.h"
 
+namespace utils
+{
+class any;
+}
 enum class IWindowErrorCode : uint8_t;
+struct ClosedByExitFlowTag {};
 
-class IWindow : public IUIComponent
+class IWindow : virtual public IContainer
 {
 public:
-	using IWindowError = utils::Error<IWindowErrorCode>;
-	using RetrieveResult = utils::Result<utils::unique_ref<IUIComponent>, IWindowError>;
-	using IUIComponent::IUIComponent;
-	virtual void Open() = 0;
-	virtual void Close() = 0;
+	using IRecursiveControlError = utils::Error<utils::IRecursiveControl::ErrorCode>;
+	using IWindowError = utils::Error<IWindowErrorCode, IRecursiveControlError>;
+	using ResultT = utils::any;
+	using OpenResultT = utils::Result<const ResultT*, IWindowError>;
+	
+public:
+	virtual OpenResultT Open() = 0;
+	virtual void Close(const ResultT&) = 0;
 	virtual bool IsOpened() const = 0;
-	virtual IUIComponent& AddUIComponent(utils::unique_ref<IUIComponent> i_uiComponent) = 0;
-	virtual RetrieveResult RetrieveUIComponent(IUIComponent& i_uiComponent) = 0;
 };

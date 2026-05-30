@@ -19,8 +19,8 @@ Game::Game(RequestExitCallbackT i_requestExitCallback, utils::MessageSink_mt& i_
 	, m_systemClock(new utils::SystemClock())
 	, m_gameControl(new GameControl())
 	, m_windowManager(new WindowManager())
-	, m_uiManager(new UIManager(i_thisFrameQueue, i_nextFrameQueue, i_recursiveControl, *m_systemClock, *m_windowManager))
 	, m_commandManager(new CommandManager())
+	, m_uiManager(new UIManager(i_thisFrameQueue, i_nextFrameQueue, i_recursiveControl, *m_systemClock, *m_windowManager, *m_commandManager))
 {
 	utils::async(m_thisFrameQueue, &Game::Run, this);
 }
@@ -66,9 +66,8 @@ void Game::Run()
 	{
 		m_canLoad = false;
 		SplashscreenWindow splashscreenWindow(m_uiManager->GetUIContext(), 0.4f * m_uiManager->GetDisplayInfo().width);
-		StartGameFlow startGameFlow(splashscreenWindow, *m_commandManager);
-		splashscreenWindow.AddInputRelay(startGameFlow);
-		splashscreenWindow.Open();
+		StartGameFlow startGameFlow(splashscreenWindow);
+		splashscreenWindow.Open().assertSuccess();
 	}
 	m_requestExitCallback(ExitReason::Exit);
 }

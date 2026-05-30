@@ -19,7 +19,7 @@ public:
 	~GameplayWindow();
 	bool ProcessInput(const std::string& input) const override;
 	utils::unique_ref<IComponent> Clone() override;
-	void Close() override;
+	void Close(const ResultT&) override;
 
 private:
 	void OnStagePhaseChanged(const logic::StagePhase& stagePhase);

@@ -2,7 +2,7 @@
 
 #include "IInputRelay.h"
 
-class InputRelay : public IInputRelay
+class InputRelay : virtual public IInputRelay
 {
 public:
 	bool ProcessInput(const std::string& input) const override;

@@ -14,20 +14,24 @@ private:
 public:
 	StageLogic(utils::unique_ref<LogicConfig>&&);
 	void UpdateLogicConfig(const LogicConfig& i_logicConfig) override;
-	void AddCardComponent(ICard& i_card) override;
+	void ReserveCardComponentCount(const size_t& i_count) override;
+	void SetCardComponent(ICard& i_card, const size_t& i_index) override;
 	void RegisterAnimableComponent(const IAnimable& i_animable) override;
 	void UnregisterAnimableComponent(const IAnimable& i_animable) override;
 	void BidOnCard(const size_t& i_id, const uint32_t& i_bidValue) override;
 	std::unique_ptr<IStageLogic::RollResult> RollCards(bool i_ignoreHitRate = false) override;
 	void Reset(bool) override;
 	uint32_t GetDefaultBid() const override;
+	uint16_t GetCardCount() const override;
 
 private:
 	void OnAnimableComponentAnimationFinished(const IAnimable& i_animable);
 	void OnAnimableComponentAnimationStarted(const IAnimable& i_animable);
+	void OnCardDestroyed(size_t i_index);
 
 private:
 	std::vector<ICard*> m_cardComponents;
+	std::vector<utils::Connection> m_cardDestroyedConnections;
 	std::unordered_map<const IAnimable*, utils::unique_ref<AnimableComponentHolder>> m_animableComponents;
 	long long m_finishedAnimationRemaining;
 	RandomGeneratorT::ErrorCode m_randomGeneratorErrorCode;

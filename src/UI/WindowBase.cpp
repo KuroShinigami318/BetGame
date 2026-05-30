@@ -2,21 +2,78 @@
 #include "UI/WindowBase.h"
 #include "Control/ActionCode.h"
 #include "UI/IUIManager.h"
-#include "UI/IWindowError.h"
 #include "UI/WindowManager.h"
+#include "UI/IWindowError.h"
 
-void WindowBase::Open()
+WindowBase::WindowBase(const UIContext& i_uiContext)
+	: IUIComponent(i_uiContext)
+	, SwitchContainer(i_uiContext)
 {
-	m_uiContext.windowManager.RegisterWindow(*this);
-	m_uiContext.recursiveControl.enter(HashObject(this)).assertSuccess();
 }
 
-void WindowBase::Close()
+WindowBase::WindowBase(const WindowBase& other)
+	: IUIComponent(other.GetUIContext())
+	, SwitchContainer(other)
+	, m_currentVisibility(other.m_currentVisibility)
 {
+	ASSERT(!other.IsOpened(), "Copying an opened window is not allowed");
+}
+
+WindowBase::WindowBase(WindowBase&& other) noexcept
+	: IUIComponent(other.GetUIContext())
+	, SwitchContainer(std::move(other))
+	, m_currentVisibility(std::move(other.m_currentVisibility))
+{
+}
+
+WindowBase& WindowBase::operator=(const WindowBase& other)
+{
+	if (this != &other)
+	{
+		SwitchContainer::operator=(other);
+		m_currentVisibility = other.m_currentVisibility;
+		ASSERT(!other.IsOpened(), "Copying an opened window is not allowed");
+	}
+	return *this;
+}
+
+WindowBase& WindowBase::operator=(WindowBase&& other) noexcept
+{
+	if (this != &other)
+	{
+		SwitchContainer::operator=(std::move(other));
+		m_currentVisibility = std::move(other.m_currentVisibility);
+	}
+	return *this;
+}
+
+IWindow::OpenResultT WindowBase::Open()
+{
+	m_result.reset();
+	InteractiveComponentTag* interactiveTag;
+	GetFirstInteractive(interactiveTag);
+	if (!IsEnd(interactiveTag))
+	{
+		SetActiveComponent(*GetUIComponent(interactiveTag));
+	}
+	m_uiContext.windowManager.RegisterWindow(*this);
+	auto enterRecursionResult = m_uiContext.recursiveControl.enter(HashObject(this));
+	if (enterRecursionResult.isErr())
+	{
+		return make_inner_error<IWindowError>(IWindowErrorCode::RecursiveControlError, enterRecursionResult.unwrapErr());
+	}
+
+	return const_cast<const ResultT*>(m_result.get());
+}
+
+void WindowBase::Close(const ResultT& i_result)
+{
+	ASSERT(m_result == nullptr, "Closing a window more than once is not allowed");
 	ClearInputRelays();
 	m_uiContext.windowManager.UnregisterWindow(*this);
 	m_uiContext.recursiveControl.exit(HashObject(this));
 	m_currentVisibility.clear();
+	m_result = utils::make_unique<ResultT>(i_result);
 }
 
 bool WindowBase::IsOpened() const
@@ -36,42 +93,18 @@ void WindowBase::OnHide() const
 	m_currentVisibility.unset(visibility_flag::visible);
 }
 
-IUIComponent& WindowBase::AddUIComponent(utils::unique_ref<IUIComponent> i_uiComponent)
+bool WindowBase::ProcessInput(const std::string& input) const
 {
-	if (const IInputRelay* inputRelay = dynamic_cast<const IInputRelay*>(i_uiComponent.get()))
-	{
-		AddInputRelay(*inputRelay);
-	}
-	return *m_uiComponents.emplace_back(std::move(i_uiComponent));
-}
-
-IWindow::RetrieveResult WindowBase::RetrieveUIComponent(IUIComponent& i_uiComponent)
-{
-	auto foundComponentIt = std::find(m_uiComponents.begin(), m_uiComponents.end(), &i_uiComponent);
-	if (foundComponentIt == m_uiComponents.end())
-	{
-		return make_error<IWindowError>(IWindowErrorCode::ComponentNotFound);
-	}
-	utils::unique_ref<IUIComponent> retrievedComponent = std::move(*foundComponentIt);
-	m_uiComponents.erase(foundComponentIt);
-	return retrievedComponent;
-}
-
-void WindowBase::Render(RendererT& o_renderStream) const
-{
-	for (const auto& uiComponent : m_uiComponents)
-	{
-		uiComponent->Render(o_renderStream);
-	}
+	return InputRelay::ProcessInput(input);
 }
 
 bool WindowBase::ProcessInputImpl(const std::string& input) const
 {
-	if (m_uiContext.uiManager.IsInputAction(input, ActionCode::Back))
+	bool processed = SwitchContainer::ProcessInput(input);
+	if (!processed && (processed = m_uiContext.uiManager.IsInputAction(input, ActionCode::Back)))
 	{
-		const_cast<WindowBase&>(*this).Close();
-		return true;
+		const_cast<WindowBase&>(*this).Close(ClosedByBackActionTag{});
 	}
 
-	return false;
+	return processed;
 }

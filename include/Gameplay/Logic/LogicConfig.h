@@ -12,5 +12,6 @@ struct LogicConfig
 	float defaultHitRate = 0.5f;
 	float hitRateStep = 0.01f;
 	uint32_t defaultBid = 1000;
+	uint16_t cardCount = 0;
 	Difficulty difficulty = Difficulty::Hard;
 };

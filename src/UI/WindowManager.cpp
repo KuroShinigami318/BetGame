@@ -37,6 +37,6 @@ void WindowManager::CloseAllWindows()
 {
 	while (!m_windows.empty())
 	{
-		m_windows.back()->Close();
+		m_windows.back()->Close(ClosedByExitFlowTag{});
 	}
 }

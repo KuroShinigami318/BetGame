@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Gameplay/UI/CardComponent.h"
+#include "UI/UIHelper.h"
 #include "attribute.h"
 
 CardComponent::CardComponent(const UIContext& i_uiContext, const uint16_t& i_id, const uint16_t& i_width, const uint16_t& i_height)
@@ -46,6 +47,16 @@ std::optional<uint32_t> CardComponent::Roll()
 	return std::nullopt;
 }
 
+void CardComponent::SetWidth(const uint16_t& i_width)
+{
+	m_width = i_width;
+}
+
+void CardComponent::SetHeight(const uint16_t& i_height)
+{
+	m_height = i_height;
+}
+
 uint16_t CardComponent::GetWidth() const
 {
 	return m_width;
@@ -76,14 +87,14 @@ void CardComponent::Render(RendererT& o_renderStream) const
 	}
 }
 
-void CardComponent::OnFocusGained()
+void CardComponent::OnFocusGained(const utils::RGBColor& i_focusColor)
 {
-	m_renderStyle->BindAttribute("isFocused", utils::attribute::make_value_attribute(true));
+	FocusUIComponent(*this, i_focusColor);
 }
 
 void CardComponent::OnFocusLost()
 {
-	m_renderStyle->BindAttribute("isFocused", utils::attribute::make_value_attribute(false));
+	UnFocusUIComponent(*this);
 }
 
 utils::unique_ref<IComponent> CardComponent::Clone()

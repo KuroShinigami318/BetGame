@@ -38,13 +38,16 @@ utils::unique_ref<IStage> BasicUIGameplayFactory::CreateStageComponent(const UIC
 {
 	const DisplayInfo& displayInfo = i_uiContext.uiManager.GetDisplayInfo();
 	utils::unique_ref<Stage> stage = utils::make_unique<Stage>(i_uiContext, i_stageLogic, displayInfo.width, displayInfo.height - BID_COMPONENT_HEIGHT);
-	uint16_t totalCards = m_randomGenerator();
+	uint16_t cardCountConfig = i_stageLogic.GetCardCount();
+	uint16_t totalCards = cardCountConfig > 0 ? cardCountConfig : m_randomGenerator();
+	stage->ReserveCardComponentCount(totalCards);
+	i_stageLogic.ReserveCardComponentCount(totalCards);
 	for (uint16_t cardIndex = 0; cardIndex < totalCards; ++cardIndex)
 	{
 		utils::unique_ref<CardComponent> cardComponent = utils::make_unique<CardComponent>(i_uiContext, cardIndex + 1, CARD_COMPONENT_WIDTH, CARD_COMPONENT_HEIGHT);
 		ICard& cardComponentRef = *cardComponent;
-		stage->AddCardComponent(std::move(cardComponent));
-		i_stageLogic.AddCardComponent(cardComponentRef);
+		stage->SetCardComponent(std::move(cardComponent), cardIndex);
+		i_stageLogic.SetCardComponent(cardComponentRef, cardIndex);
 	}
 	return std::move(stage);
 }

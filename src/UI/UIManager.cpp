@@ -35,13 +35,14 @@ utils::unique_ref<DisplayInfo> GetDisplayInfo()
 }
 }
 
-UIManager::UIManager(utils::IMessageQueue& i_thisFrameQueue, utils::IMessageQueue& i_nextFrameQueue, utils::IRecursiveControl& i_recursiveControl, const utils::SystemClock& i_systemClock, WindowManager& i_windowManager)
-	: m_uiContext(utils::make_unique<UIContext>(i_thisFrameQueue, i_nextFrameQueue, i_recursiveControl, i_systemClock, i_windowManager, *this))
+UIManager::UIManager(utils::IMessageQueue& i_thisFrameQueue, utils::IMessageQueue& i_nextFrameQueue, utils::IRecursiveControl& i_recursiveControl, const utils::SystemClock& i_systemClock, WindowManager& i_windowManager, ICommandManager& i_commandManager)
+	: m_uiContext(utils::make_unique<UIContext>(i_thisFrameQueue, i_nextFrameQueue, i_recursiveControl, i_systemClock, i_windowManager, i_commandManager, *this))
 	, m_displayInfo(::GetDisplayInfo())
 	, m_attributesMap(utils::make_unique<AttributesMap>())
 {
 	m_inputActionMap.emplace(ActionCode::Back, std::vector<std::string>{"\b", "\177"});
 	m_inputActionMap.emplace(ActionCode::Enter, std::vector<std::string>{"\r", "\n", "\0"});
+	m_inputActionMap.emplace(ActionCode::Switch, std::vector<std::string>{"\t"});
 	m_inputActionMap.emplace(ActionCode::Pause, std::vector<std::string>{"p"});
 	for (UIComponentType currentType = UIComponentType::_FIRST; currentType <= UIComponentType::_LAST; ++currentType)
 	{

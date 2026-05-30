@@ -13,11 +13,16 @@ class Stage : public IStage, public IInputRelay
 {
 public:
 	Stage(const UIContext& i_uiContext, IStageLogic& i_stageLogic, const uint16_t& i_width, const uint16_t& i_height);
-	void AddCardComponent(utils::unique_ref<IUIComponent>) override;
+	void ReserveCardComponentCount(const size_t& i_count) override;
+	void SetCardComponent(utils::unique_ref<IUIComponent> i_card, const size_t& i_index) override;
 	void SetRenderStyle(utils::unique_ref<IRenderStyle> i_renderStyle) override;
 	void Render(RendererT& o_renderStream) const override;
 	bool ProcessInput(const std::string&) const override;
 	utils::unique_ref<IComponent> Clone() override;
+	void SetWidth(const uint16_t& i_width) override { m_width = i_width; }
+    void SetHeight(const uint16_t& i_height) override { m_height = i_height; }
+    uint16_t GetWidth() const override { return m_width; }
+    uint16_t GetHeight() const override { return m_height; }
 
 private:
 	void Update(float);
@@ -35,7 +40,7 @@ private:
 	bool m_isOnLocalAnimation;
 	std::optional<float> m_currentIndex;
 	utils::unique_ref<utils::TimerDelayer> m_animationDelayer;
-	std::vector<utils::unique_ref<IUIComponent>> m_cardComponents;
+	std::vector<utils::unique_ptr<IUIComponent>> m_cardComponents;
 	std::vector<utils::Connection> m_connections;
 	std::unique_ptr<IStageLogic::RollResult> m_currentRollResult;
 	utils::unique_ref<IRenderStyle> m_winInfoRenderStyle;

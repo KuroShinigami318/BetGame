@@ -115,6 +115,7 @@ void Application::RegisterInputDevice(IInputDevice& i_inputDevice)
     NOT_RELEASE(m_connections.push_back(i_inputDevice.sig_onInput.Connect(
         [this](std::string input)
         {
+            std::transform(input.begin(), input.end(), input.begin(), [](unsigned char c) { return std::tolower(c); });
             if (input.find("r") != std::string::npos)
             {
                 RequestExit(ExitReason::Reload);

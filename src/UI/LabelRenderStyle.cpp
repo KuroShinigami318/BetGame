@@ -56,7 +56,7 @@ void LabelRenderStyle::Render(RendererT& i_renderer) const
 			{
 				i_renderer << formattedVerticalLineBoundary;
 			}
-			else if (row == *height / 2 && (col == (*width - text.size()) / 2 || *width == text.size()))
+			else if (!text.empty() && row == *height / 2 && (col == (*width - text.size()) / 2 || *width == text.size()))
 			{
 				i_renderer << formattedText;
 				col += text.size() - 1;

@@ -4,6 +4,7 @@
 #include "UI/IUIComponent.h"
 #include "UI/IUIManager.h"
 #include "Gameplay/UI/IUIRenderStyleFactory.h"
+#include "attribute.h"
 
 std::string FormatText(const char* i_text, utils::Log::TextFormat i_textFormat)
 {
@@ -40,5 +41,21 @@ void ApplyRenderStyle(IUIManager& uiManager, IUIRenderStyleFactory& factory)
 		}
 		IUIComponent* uiComponent = const_cast<IUIComponent*>(uiComponentResult.unwrap());
 		uiComponent->SetRenderStyle(std::move(renderStyleHolder.uiRenderStyle));
+	}
+}
+
+void FocusUIComponent(const IUIComponent& uiComponent, const utils::RGBColor& i_focusColor)
+{
+	if (IRenderStyle* renderStyle = uiComponent.GetRenderStyle())
+	{
+		renderStyle->BindAttribute("text_format", utils::attribute::make_attribute<utils::Log::TextFormat>(utils::Log::TextStyle::Bold, i_focusColor));
+	}
+}
+
+void UnFocusUIComponent(const IUIComponent& uiComponent)
+{
+	if (IRenderStyle* renderStyle = uiComponent.GetRenderStyle())
+	{
+		renderStyle->UnbindAttribute("text_format");
 	}
 }

@@ -36,8 +36,8 @@ private:
 	utils::unique_ref<utils::SystemClock> m_systemClock;
 	utils::unique_ref<class GameControl> m_gameControl;
 	utils::unique_ref<WindowManager> m_windowManager;
-	utils::unique_ref<class UIManager> m_uiManager;
 	utils::unique_ref<class ICommandManager> m_commandManager;
+	utils::unique_ref<class UIManager> m_uiManager;
 	std::unordered_map<IInputDevice*, utils::Connection> m_connections;
 	bool m_canLoad = true;
 };
