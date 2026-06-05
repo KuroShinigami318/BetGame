@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "Components/ButtonComponent.h"
 #include "Control/ActionCode.h"
+#include "UI/IInputHints.h"
 #include "UI/IUIManager.h"
 #include "UI/UIHelper.h"
 
@@ -19,6 +20,11 @@ bool ButtonComponent::ProcessInput(const std::string& i_input) const
         return true;
     }
     return false;
+}
+
+void ButtonComponent::InitializeInputHints(IInputHints& i_inputHints) const
+{
+    i_inputHints.AddHint(ActionCode::Enter, "[Enter]: Activate Button");
 }
 
 void ButtonComponent::OnFocusGained(const utils::RGBColor& i_focusColor)

@@ -19,6 +19,7 @@ public:
     void OnFocusGained(const utils::RGBColor& i_focusColor) override;
     void OnFocusLost() override;
     bool ProcessInput(const std::string& i_input) const override;
+    void InitializeInputHints(IInputHints& i_inputHints) const override;
 
 private:
     uint16_t m_width;

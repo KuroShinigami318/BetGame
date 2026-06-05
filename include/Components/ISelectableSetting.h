@@ -1,6 +1,5 @@
 #pragma once
 #include "ILabel.h"
-#include <initializer_list>
 
 class IOption;
 

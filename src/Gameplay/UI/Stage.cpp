@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "Gameplay/UI/Stage.h"
 #include "Control/ActionCode.h"
+#include "UI/IInputHints.h"
 #include "UI/IUIManager.h"
 #include "UI/LabelRenderStyle.h"
 #include "Gameplay/Logic/StagePhase.h"
@@ -77,6 +78,7 @@ void Stage::Render(RendererT& o_renderStream) const
 bool Stage::ProcessInput(const std::string& i_input) const
 {
 	static bool toggleIgnoreHitRate = false;
+	const char maxCardIndex = '0' + m_cardComponents.size();
 	switch (i_input[0])
 	{
 	NOT_RELEASE(
@@ -86,7 +88,7 @@ bool Stage::ProcessInput(const std::string& i_input) const
 		return true;
 	})
 	default:
-	if (i_input[0] > '0' && i_input[0] <= '9')
+	if (i_input[0] > '0' && i_input[0] <= maxCardIndex)
 	{
 		uint8_t cardIndex = i_input[0] - '1';
 		m_stageLogic.BidOnCard(cardIndex, 1);
@@ -108,6 +110,16 @@ bool Stage::ProcessInput(const std::string& i_input) const
 	break;
 	}
 	return false;
+}
+
+void Stage::InitializeInputHints(IInputHints& i_inputHints) const
+{
+	const std::string maxCardIndex(1, '0' + m_cardComponents.size());
+	i_inputHints.AddHint(ActionCode::Enter, "[Enter]: Roll Cards");
+	i_inputHints.AddHint(ActionCode::Custom, utils::Format("[1-{}]: Place Bet on Card", maxCardIndex), [maxCardIndex](const std::string& input)
+	{
+		return input.size() == 1 && input[0] > '0' && input[0] <= maxCardIndex[0];
+	});
 }
 
 utils::unique_ref<IComponent> Stage::Clone()

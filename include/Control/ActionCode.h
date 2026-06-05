@@ -2,7 +2,11 @@
 
 DeclareScopedEnumWithOperatorDefined(ActionCode, DUMMY_NAMESPACE, uint8_t,
 	Back,
+	BackSpace,
 	Enter,
 	Switch,
-	Pause
+	LeftArrow,
+	RightArrow,
+	Pause,
+	Custom
 )

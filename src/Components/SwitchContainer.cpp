@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Components/SwitchContainer.h"
+#include "UI/IInputHints.h"
 #include "UI/IUIManager.h"
 #include "Control/ActionCode.h"
 
@@ -51,16 +52,43 @@ utils::unique_ref<IComponent> SwitchContainer::Clone()
     return utils::make_unique<SwitchContainer>(*this);
 }
 
+void SwitchContainer::OnFocusGained(const utils::RGBColor& i_focusColor)
+{
+    if (!IsEnd(m_currentComponentTag))
+    {
+        GetUIComponent(m_currentComponentTag)->OnFocusGained(i_focusColor);
+    }
+}
+
+void SwitchContainer::OnFocusLost()
+{
+    if (!IsEnd(m_currentComponentTag))
+    {
+        GetUIComponent(m_currentComponentTag)->OnFocusLost();
+    }
+}
+
 bool SwitchContainer::ProcessInput(const std::string& i_input) const
 {
     if (m_uiContext.uiManager.IsInputAction(i_input, ActionCode::Switch))
     {
         bool switched = false;
+        InteractiveComponentTag* oldComponentTag = m_currentComponentTag;
+        SwitchContainer* self = const_cast<SwitchContainer*>(this);
         if (SwitchContainer* switchContainer = dynamic_cast<SwitchContainer*>(GetInputRelay(m_currentComponentTag)))
         {
+            utils::Connection onActiveComponentChangedConnection = switchContainer->sig_onActiveComponentChanged.Connect(&SwitchContainer::OnActiveComponentChanged, self);
             switched = switchContainer->ProcessInput(i_input);
         }
-        return switched || const_cast<SwitchContainer*>(this)->SwitchToNextInputComponent();
+        if (!switched)
+        {
+            self->SwitchToNextInputComponent();
+            if (switched = (m_currentComponentTag != oldComponentTag))
+            {
+                self->OnActiveComponentChanged(*GetUIComponent(m_currentComponentTag));
+            }
+        }
+        return switched;
     }
 
     if (!IsEnd(m_currentComponentTag))
@@ -69,6 +97,15 @@ bool SwitchContainer::ProcessInput(const std::string& i_input) const
     }
 
     return false;
+}
+
+void SwitchContainer::InitializeInputHints(IInputHints& i_inputHints) const
+{
+    i_inputHints.AddHint(ActionCode::Switch, "[Tab]: Switch Focus");
+    if (!IsEnd(m_currentComponentTag))
+    {
+        return GetInputRelay(m_currentComponentTag)->InitializeInputHints(i_inputHints);
+    }
 }
 
 bool SwitchContainer::SwitchToNextInputComponent(const utils::RGBColor& i_focusColor)
@@ -108,9 +145,15 @@ bool SwitchContainer::SetActiveComponent(IUIComponent& i_uiComponent, const util
             }
             m_currentComponentTag = listTag;
             GetUIComponent(m_currentComponentTag)->OnFocusGained(i_focusColor);
+            OnActiveComponentChanged(*GetUIComponent(m_currentComponentTag));
             return true;
         }
         Next(listTag);
     }
     return false;
+}
+
+void SwitchContainer::OnActiveComponentChanged(const IUIComponent& i_activeComponent)
+{
+    utils::Access<SignalKey>(sig_onActiveComponentChanged).Emit(i_activeComponent);
 }

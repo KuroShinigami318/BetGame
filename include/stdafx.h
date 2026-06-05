@@ -10,3 +10,4 @@
 #include "WorkerThread.h"
 #include "flag_set.h"
 #include "any.h"
+#include <initializer_list>

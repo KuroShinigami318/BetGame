@@ -2,6 +2,7 @@
 #include "Components/TextInput.h"
 #include "Control/ActionCode.h"
 #include "UI/LabelRenderStyle.h"
+#include "UI/IInputHints.h"
 #include "UI/IUIManager.h"
 #include "UI/UIHelper.h"
 
@@ -77,7 +78,7 @@ void TextInput::OnFocusLost()
 bool TextInput::ProcessInput(const std::string& i_input) const
 {
     TextInput& _this = const_cast<TextInput&>(*this);
-    if (m_uiContext.uiManager.IsInputAction(i_input, ActionCode::Back))
+    if (m_uiContext.uiManager.IsInputAction(i_input, ActionCode::BackSpace))
     {
         if (!m_inputText.empty())
         {
@@ -96,4 +97,10 @@ bool TextInput::ProcessInput(const std::string& i_input) const
         }
     }
     return true;
+}
+
+void TextInput::InitializeInputHints(IInputHints& i_inputHints) const
+{
+    i_inputHints.AddHint(ActionCode::Enter, "[Enter]: Confirm Input");
+    i_inputHints.AddHint(ActionCode::BackSpace, "[Backspace]: Delete Last Character");
 }

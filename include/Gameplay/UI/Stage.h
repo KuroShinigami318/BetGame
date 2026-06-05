@@ -18,6 +18,7 @@ public:
 	void SetRenderStyle(utils::unique_ref<IRenderStyle> i_renderStyle) override;
 	void Render(RendererT& o_renderStream) const override;
 	bool ProcessInput(const std::string&) const override;
+	void InitializeInputHints(IInputHints& i_inputHints) const override;
 	utils::unique_ref<IComponent> Clone() override;
 	void SetWidth(const uint16_t& i_width) override { m_width = i_width; }
     void SetHeight(const uint16_t& i_height) override { m_height = i_height; }

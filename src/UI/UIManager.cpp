@@ -40,10 +40,13 @@ UIManager::UIManager(utils::IMessageQueue& i_thisFrameQueue, utils::IMessageQueu
 	, m_displayInfo(::GetDisplayInfo())
 	, m_attributesMap(utils::make_unique<AttributesMap>())
 {
-	m_inputActionMap.emplace(ActionCode::Back, std::vector<std::string>{"\b", "\177"});
+	m_inputActionMap.emplace(ActionCode::Back, std::vector<std::string>{"\x1B"});
+	m_inputActionMap.emplace(ActionCode::BackSpace, std::vector<std::string>{"\b", "\177"});
 	m_inputActionMap.emplace(ActionCode::Enter, std::vector<std::string>{"\r", "\n", "\0"});
 	m_inputActionMap.emplace(ActionCode::Switch, std::vector<std::string>{"\t"});
 	m_inputActionMap.emplace(ActionCode::Pause, std::vector<std::string>{"p"});
+	m_inputActionMap.emplace(ActionCode::LeftArrow, std::vector<std::string>{"\x1B[D", {-32, 75}});
+	m_inputActionMap.emplace(ActionCode::RightArrow, std::vector<std::string>{"\x1B[C", {-32, 77}});
 	for (UIComponentType currentType = UIComponentType::_FIRST; currentType <= UIComponentType::_LAST; ++currentType)
 	{
 		m_uiComponentTypeMap.emplace(currentType, utils::Format("{}", currentType));

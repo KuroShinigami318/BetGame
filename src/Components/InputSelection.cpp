@@ -1,8 +1,11 @@
 #include "stdafx.h"
 #include "Components/InputSelection.h"
 #include "Components/IOption.h"
+#include "Control/ActionCode.h"
+#include "UI/IInputHints.h"
 #include "UI/LabelRenderStyle.h"
 #include "UI/UIHelper.h"
+#include "UI/IUIManager.h"
 
 #include "attribute.h"
 #include "intrusive_list.h"
@@ -85,14 +88,24 @@ void InputSelection::OnFocusLost()
 bool InputSelection::ProcessInput(const std::string& i_input) const
 {
     InputSelection* self = const_cast<InputSelection*>(this);
-    switch (i_input[0])
+    if (m_uiContext.uiManager.IsInputAction(i_input, ActionCode::LeftArrow))
     {
-    case '<': self->SwitchToPreviousOption();
-        return true;
-    case '>': self->SwitchToNextOption();
+        self->SwitchToPreviousOption();
         return true;
     }
+    if (m_uiContext.uiManager.IsInputAction(i_input, ActionCode::RightArrow))
+    {
+        self->SwitchToNextOption();
+        return true;
+    }
+
     return false;
+}
+
+void InputSelection::InitializeInputHints(IInputHints& i_inputHints) const
+{
+    i_inputHints.AddHint(ActionCode::LeftArrow, "[Left Arrow]: Previous Option");
+    i_inputHints.AddHint(ActionCode::RightArrow, "[Right Arrow]: Next Option");
 }
 
 void InputSelection::AddOptions(std::initializer_list<utils::unique_ref<IOption>> i_options)

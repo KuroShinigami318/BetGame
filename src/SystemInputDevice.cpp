@@ -46,10 +46,7 @@ void SystemInputDevice::OnRun()
     if (int c = GetChar(); c != EOF && c != '\n')
     {
         m_inputVar += c;
-        if (m_inputMode == InputMode::Line)
-        {
-            return;
-        }
+        return;
     }
     if (m_isInputRequested)
     {
@@ -88,5 +85,27 @@ void SystemInputDevice::FirstRun()
 
 int SystemInputDevice::GetChar()
 {
-    return m_inputMode == InputMode::Char ? utils::raw_getch() : std::cin.get();
+    static bool isRawInputReceived = false;
+    switch (m_inputMode)
+    {
+        case InputMode::Char:
+        {
+            if (!isRawInputReceived || utils::stdin_has_input())
+            {
+                isRawInputReceived = true;
+                return utils::raw_getch();
+            }
+            else
+            {
+                isRawInputReceived = false;
+                return EOF;
+            }
+        }
+        case InputMode::Line:
+        {
+            return std::cin.get();
+        }
+    }
+
+    return EOF;
 }

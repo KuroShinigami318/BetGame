@@ -3,18 +3,14 @@
 
 bool InputRelay::ProcessInput(const std::string& input) const
 {
-	const bool processed = ProcessInputImpl(input);
-	if (!processed)
+	for (const auto& inputRelay : m_inputRelays)
 	{
-		for (const auto& inputRelay : m_inputRelays)
+		if (inputRelay->ProcessInput(input))
 		{
-			if (inputRelay->ProcessInput(input))
-			{
-				return true;
-			}
+			return true;
 		}
 	}
-	return processed;
+	return ProcessInputImpl(input);
 }
 
 void InputRelay::AddInputRelay(const IInputRelay& i_inputRelay)

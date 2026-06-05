@@ -58,5 +58,5 @@ utils::unique_ref<IComponent> SelectableSetting::Clone()
 
 void SelectableSetting::OnOptionChanged(IOption& i_option)
 {
-    utils::Access<SignalKey>(sig_onOptionChanged).Emit(i_option);
+    utils::Access<ISelectableSetting::SignalKey>(sig_onOptionChanged).Emit(i_option);
 }

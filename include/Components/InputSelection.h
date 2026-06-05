@@ -1,7 +1,6 @@
 #pragma once
 #include "UI/IUIComponent.h"
 #include "Control/IInputRelay.h"
-#include <initializer_list>
 
 class IOption;
 namespace utils
@@ -26,6 +25,7 @@ public:
     void OnFocusGained(const utils::RGBColor& i_focusColor) override;
     void OnFocusLost() override;
     bool ProcessInput(const std::string& i_input) const override;
+    void InitializeInputHints(IInputHints& i_inputHints) const override;
     virtual void AddOptions(std::initializer_list<utils::unique_ref<IOption>> i_options);
     virtual void AddOption(utils::unique_ref<IOption> i_option);
     virtual void RemoveOption(IOption& i_option);
