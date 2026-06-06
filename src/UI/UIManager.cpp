@@ -19,18 +19,36 @@ namespace
 {
 utils::unique_ref<DisplayInfo> GetDisplayInfo()
 {
+	// Sensible fallback used when the real terminal size cannot be determined (for
+	// example when output is redirected to a file or pipe, where the size query fails).
+	// Without this guard the width/height were left uninitialised, producing garbage
+	// dimensions that made every component render enormous rows of padding.
+	constexpr int DEFAULT_WIDTH = 120;
+	constexpr int DEFAULT_HEIGHT = 30;
 	int width = 0, height = 0;
 #if defined(USE_WIN32_API)
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
-	GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
-	width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
-	height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+	if (GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi))
+	{
+		width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+		height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+	}
 #else
-	struct winsize w;
-	ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-	width = w.ws_col;
-	height = w.ws_row;
+	struct winsize w = {};
+	if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == 0)
+	{
+		width = w.ws_col;
+		height = w.ws_row;
+	}
 #endif
+	if (width <= 0)
+	{
+		width = DEFAULT_WIDTH;
+	}
+	if (height <= 0)
+	{
+		height = DEFAULT_HEIGHT;
+	}
 	return utils::make_unique<DisplayInfo>(width, height);
 }
 }
@@ -43,7 +61,8 @@ UIManager::UIManager(utils::IMessageQueue& i_thisFrameQueue, utils::IMessageQueu
 	m_inputActionMap.emplace(ActionCode::Back, std::vector<std::string>{"\x1B"});
 	m_inputActionMap.emplace(ActionCode::BackSpace, std::vector<std::string>{"\b", "\177"});
 	m_inputActionMap.emplace(ActionCode::Enter, std::vector<std::string>{"\r", "\n", "\0"});
-	m_inputActionMap.emplace(ActionCode::Switch, std::vector<std::string>{"\t"});
+	m_inputActionMap.emplace(ActionCode::SwitchNext, std::vector<std::string>{"\t"});
+	m_inputActionMap.emplace(ActionCode::SwitchPrev, std::vector<std::string>{"\x1B[Z"});
 	m_inputActionMap.emplace(ActionCode::Pause, std::vector<std::string>{"p"});
 	m_inputActionMap.emplace(ActionCode::LeftArrow, std::vector<std::string>{"\x1B[D", {-32, 75}});
 	m_inputActionMap.emplace(ActionCode::RightArrow, std::vector<std::string>{"\x1B[C", {-32, 77}});

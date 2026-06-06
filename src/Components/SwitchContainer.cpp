@@ -70,7 +70,7 @@ void SwitchContainer::OnFocusLost()
 
 bool SwitchContainer::ProcessInput(const std::string& i_input) const
 {
-    if (m_uiContext.uiManager.IsInputAction(i_input, ActionCode::Switch))
+    if (m_uiContext.uiManager.IsInputAction(i_input, ActionCode::SwitchNext) || m_uiContext.uiManager.IsInputAction(i_input, ActionCode::SwitchPrev))
     {
         bool switched = false;
         InteractiveComponentTag* oldComponentTag = m_currentComponentTag;
@@ -82,7 +82,14 @@ bool SwitchContainer::ProcessInput(const std::string& i_input) const
         }
         if (!switched)
         {
-            self->SwitchToNextInputComponent();
+            if (m_uiContext.uiManager.IsInputAction(i_input, ActionCode::SwitchNext))
+            {
+                self->SwitchToNextInputComponent();
+            }
+            else if (m_uiContext.uiManager.IsInputAction(i_input, ActionCode::SwitchPrev))
+            {
+                self->SwitchToPrevInputComponent();
+            }
             if (switched = (m_currentComponentTag != oldComponentTag))
             {
                 self->OnActiveComponentChanged(*GetUIComponent(m_currentComponentTag));
@@ -101,7 +108,8 @@ bool SwitchContainer::ProcessInput(const std::string& i_input) const
 
 void SwitchContainer::InitializeInputHints(IInputHints& i_inputHints) const
 {
-    i_inputHints.AddHint(ActionCode::Switch, "[Tab]: Switch Focus");
+    i_inputHints.AddHint(ActionCode::SwitchNext, "[Tab]: Switch Next Focus");
+    i_inputHints.AddHint(ActionCode::SwitchPrev, "[Shift + Tab]: Switch Previous Focus");
     if (!IsEnd(m_currentComponentTag))
     {
         return GetInputRelay(m_currentComponentTag)->InitializeInputHints(i_inputHints);
@@ -119,6 +127,25 @@ bool SwitchContainer::SwitchToNextInputComponent(const utils::RGBColor& i_focusC
     do
     {
         Next(const_cast<InteractiveComponentTag*&>(m_currentComponentTag));
+    } while (m_currentComponentTag != firstInteractiveComponentTag && !GetInputRelay(m_currentComponentTag));
+    if (!IsEnd(m_currentComponentTag))
+    {
+        GetUIComponent(m_currentComponentTag)->OnFocusGained(i_focusColor);
+    }
+    return m_currentComponentTag != firstInteractiveComponentTag;
+}
+
+bool SwitchContainer::SwitchToPrevInputComponent(const utils::RGBColor& i_focusColor)
+{
+    InteractiveComponentTag* firstInteractiveComponentTag;
+    GetFirstInteractive(firstInteractiveComponentTag);
+    if (!IsEnd(m_currentComponentTag))
+    {
+        GetUIComponent(m_currentComponentTag)->OnFocusLost();
+    }
+    do
+    {
+        Prev(const_cast<InteractiveComponentTag*&>(m_currentComponentTag));
     } while (m_currentComponentTag != firstInteractiveComponentTag && !GetInputRelay(m_currentComponentTag));
     if (!IsEnd(m_currentComponentTag))
     {

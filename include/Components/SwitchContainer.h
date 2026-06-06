@@ -21,6 +21,7 @@ public:
     bool ProcessInput(const std::string&) const override;
     void InitializeInputHints(IInputHints& i_inputHints) const override;
     bool SwitchToNextInputComponent(const utils::RGBColor& i_focusColor = utils::RGBColor(0, 255, 0));
+    bool SwitchToPrevInputComponent(const utils::RGBColor& i_focusColor = utils::RGBColor(0, 255, 0));
     bool SetActiveComponent(IUIComponent& i_uiComponent, const utils::RGBColor& i_focusColor = utils::RGBColor(0, 255, 0));
 
 private:
