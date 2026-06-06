@@ -1,6 +1,8 @@
 #pragma once
 #include "FrameThread.h"
 #include "ExitReason.h"
+#include <string>
+#include <vector>
 
 class IInputDevice;
 
@@ -37,7 +39,7 @@ private:
     void CreateGame();
     void DestroyGame();
     void Render();
-	void SyncWithFrameThread();
+    void SyncWithFrameThread();
 
     bool m_isExiting;
     float m_multiplier;
@@ -49,6 +51,10 @@ private:
     utils::nanosecs m_actualElapsed;
     FrameResult m_previousFrameResult;
     FrameResult m_frameResult;
+    std::vector<std::string> m_previousRows;
+    int m_renderWidth = 0;
+    int m_renderHeight = 0;
+    bool m_firstRender = true;
     utils::unique_ref<utils::IHeartBeats> m_heart;
     utils::FrameThread<FrameResult(float)> m_frameThread;
     std::vector<utils::Connection> m_connections;
