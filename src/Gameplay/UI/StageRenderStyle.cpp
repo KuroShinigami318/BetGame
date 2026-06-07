@@ -29,8 +29,9 @@ void StageRenderStyle::Render(RendererT& o_renderStream) const
 		return;
 	}
 	const size_t itemsPerRow = (*width) / cardComponents->at(0)->GetWidth();
-	const double rowCount = (double)cardComponents->size() / itemsPerRow;
+	double rowCount = (double)cardComponents->size() / itemsPerRow;
 	ASSERT_PLAIN_MSG(rowCount < *height, "Not enough height to render all cards. expected minimum height:{}, but actual height:{}", rowCount, *height);
+	rowCount = (std::min)(rowCount, (double)*height);
 	for (size_t row = 0; row < rowCount; ++row)
 	{
 		for (size_t col = 0; col < itemsPerRow; ++col)

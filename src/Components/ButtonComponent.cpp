@@ -24,7 +24,7 @@ bool ButtonComponent::ProcessInput(const std::string& i_input) const
 
 void ButtonComponent::InitializeInputHints(IInputHints& i_inputHints) const
 {
-    i_inputHints.AddHint(ActionCode::Enter, "[Enter]: Activate Button");
+    i_inputHints.AddHint(ActionCode::Enter, "Activate Button");
 }
 
 void ButtonComponent::OnFocusGained(const utils::RGBColor& i_focusColor)

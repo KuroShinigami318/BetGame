@@ -58,14 +58,14 @@ UIManager::UIManager(utils::IMessageQueue& i_thisFrameQueue, utils::IMessageQueu
 	, m_displayInfo(::GetDisplayInfo())
 	, m_attributesMap(utils::make_unique<AttributesMap>())
 {
-	m_inputActionMap.emplace(ActionCode::Back, std::vector<std::string>{"\x1B"});
-	m_inputActionMap.emplace(ActionCode::BackSpace, std::vector<std::string>{"\b", "\177"});
-	m_inputActionMap.emplace(ActionCode::Enter, std::vector<std::string>{"\r", "\n", "\0"});
-	m_inputActionMap.emplace(ActionCode::SwitchNext, std::vector<std::string>{"\t"});
-	m_inputActionMap.emplace(ActionCode::SwitchPrev, std::vector<std::string>{"\x1B[Z"});
-	m_inputActionMap.emplace(ActionCode::Pause, std::vector<std::string>{"p"});
-	m_inputActionMap.emplace(ActionCode::LeftArrow, std::vector<std::string>{"\x1B[D", {-32, 75}});
-	m_inputActionMap.emplace(ActionCode::RightArrow, std::vector<std::string>{"\x1B[C", {-32, 77}});
+	m_inputActionMap.emplace(ActionCode::Back, std::vector<std::pair<std::string, std::string>>{{"\x1B", "Esc"}});
+	m_inputActionMap.emplace(ActionCode::BackSpace, std::vector<std::pair<std::string, std::string>>{{"\b", "BackSpace"}, {"\177", ""}});
+	m_inputActionMap.emplace(ActionCode::Enter, std::vector<std::pair<std::string, std::string>>{{"\r", "Enter"}, {"\n", ""}, {"\0", ""}});
+	m_inputActionMap.emplace(ActionCode::SwitchNext, std::vector<std::pair<std::string, std::string>>{{"\t", "Tab"}, {"\033[B", "Down Arrow"}, {{-32, 80}, ""}});
+	m_inputActionMap.emplace(ActionCode::SwitchPrev, std::vector<std::pair<std::string, std::string>>{{"\033[A", "Up Arrow"}, {{-32, 72}, ""}});
+	m_inputActionMap.emplace(ActionCode::Pause, std::vector<std::pair<std::string, std::string>>{{"p", "Pause"}});
+	m_inputActionMap.emplace(ActionCode::LeftArrow, std::vector<std::pair<std::string, std::string>>{{"\x1B[D", "Left Arrow"}, {{-32, 75}, ""}});
+	m_inputActionMap.emplace(ActionCode::RightArrow, std::vector<std::pair<std::string, std::string>>{{"\x1B[C", "Right Arrow"}, {{-32, 77}, ""}});
 	for (UIComponentType currentType = UIComponentType::_FIRST; currentType <= UIComponentType::_LAST; ++currentType)
 	{
 		m_uiComponentTypeMap.emplace(currentType, utils::Format("{}", currentType));
@@ -180,10 +180,33 @@ bool UIManager::ProcessInput(const std::string& input)
 	return true;
 }
 
-std::vector<std::string> UIManager::GetInputActionMap(ActionCode i_actionCode) const
+IUIManager::InputActionsT UIManager::GetInputActionMap(ActionCode i_actionCode) const
 {
 	auto mapFoundIt = m_inputActionMap.find(i_actionCode);
-	return mapFoundIt != m_inputActionMap.end() ? mapFoundIt->second : std::vector<std::string>{};
+	return mapFoundIt != m_inputActionMap.end() ? mapFoundIt->second : IUIManager::InputActionsT{};
+}
+
+std::string UIManager::GetInputActionHint(ActionCode i_actionCode) const
+{
+	auto mapFoundIt = m_inputActionMap.find(i_actionCode);
+	if (mapFoundIt != m_inputActionMap.end())
+	{
+		std::string combinedHints;
+		for (const auto& action : mapFoundIt->second)
+		{
+			if (action.second.empty())
+			{
+				continue;
+			}
+			if (!combinedHints.empty())
+			{
+				combinedHints.append(" / ");
+			}
+			combinedHints.append(action.second);
+		}
+		return combinedHints;
+	}
+	return {};
 }
 
 bool UIManager::IsInputAction(const std::string& i_inputAction, ActionCode i_actionCode) const
@@ -192,7 +215,9 @@ bool UIManager::IsInputAction(const std::string& i_inputAction, ActionCode i_act
 	if (mapFoundIt != m_inputActionMap.end())
 	{
 		const auto& actions = mapFoundIt->second;
-		return std::find(actions.begin(), actions.end(), i_inputAction) != actions.end();
+		return std::find_if(actions.begin(), actions.end(), [&i_inputAction](const std::pair<std::string, std::string>& action) {
+			return action.first == i_inputAction;
+		}) != actions.end();
 	}
 	return false;
 }

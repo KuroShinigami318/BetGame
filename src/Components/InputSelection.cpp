@@ -104,8 +104,8 @@ bool InputSelection::ProcessInput(const std::string& i_input) const
 
 void InputSelection::InitializeInputHints(IInputHints& i_inputHints) const
 {
-    i_inputHints.AddHint(ActionCode::LeftArrow, "[Left Arrow]: Previous Option");
-    i_inputHints.AddHint(ActionCode::RightArrow, "[Right Arrow]: Next Option");
+    i_inputHints.AddHint(ActionCode::LeftArrow, "Previous Option");
+    i_inputHints.AddHint(ActionCode::RightArrow, "Next Option");
 }
 
 void InputSelection::AddOptions(std::initializer_list<utils::unique_ref<IOption>> i_options)

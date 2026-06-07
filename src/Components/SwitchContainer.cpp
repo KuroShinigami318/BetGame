@@ -108,8 +108,8 @@ bool SwitchContainer::ProcessInput(const std::string& i_input) const
 
 void SwitchContainer::InitializeInputHints(IInputHints& i_inputHints) const
 {
-    i_inputHints.AddHint(ActionCode::SwitchNext, "[Tab]: Switch Next Focus");
-    i_inputHints.AddHint(ActionCode::SwitchPrev, "[Shift + Tab]: Switch Previous Focus");
+    i_inputHints.AddHint(ActionCode::SwitchNext, "Switch Next Focus");
+    i_inputHints.AddHint(ActionCode::SwitchPrev, "Switch Previous Focus");
     if (!IsEnd(m_currentComponentTag))
     {
         return GetInputRelay(m_currentComponentTag)->InitializeInputHints(i_inputHints);

@@ -201,7 +201,7 @@ void WindowBase::InitializeInputHints(IInputHints& i_inputHints) const
 {
 	WindowBase* self = const_cast<WindowBase*>(this);
 	SwitchContainer::InitializeInputHints(i_inputHints);
-	i_inputHints.AddHint(ActionCode::Back, "[Esc]: Close Window");
+	i_inputHints.AddHint(ActionCode::Back, "Close Window");
 	for (auto& [_, inputHint] : m_inputHintsMap)
 	{
 		utils::unique_ref<InputHintRelay> relay = utils::make_unique<InputHintRelay>(*inputHint, m_uiContext.uiManager);
@@ -220,7 +220,12 @@ void WindowBase::AddHint(ActionCode i_actionCode, const std::string& i_hint, uti
 	{
 		return;
 	}
-	m_inputHintsMap.insert_or_assign(i_actionCode, utils::make_unique<InputHint>(i_actionCode, i_hint, i_processInputFunc));
+	std::string displayHint = i_hint;
+	if (i_actionCode != ActionCode::Custom)
+	{
+		displayHint = utils::Format("[{}]: {}", m_uiContext.uiManager.GetInputActionHint(i_actionCode), i_hint);
+	}
+	m_inputHintsMap.insert_or_assign(i_actionCode, utils::make_unique<InputHint>(i_actionCode, displayHint, i_processInputFunc));
 }
 
 void WindowBase::ClearHints()

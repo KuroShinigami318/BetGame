@@ -28,7 +28,8 @@ public:
 	const UIContext& GetUIContext() const override;
 	const DisplayInfo& GetDisplayInfo() const override;
 	bool ProcessInput(const std::string& input);
-	std::vector<std::string> GetInputActionMap(ActionCode) const override;
+	InputActionsT GetInputActionMap(ActionCode) const override;
+	std::string GetInputActionHint(ActionCode) const override;
 	bool IsInputAction(const std::string& i_inputAction, ActionCode i_actionCode) const override;
 
 	// IAttributesMap implementation
@@ -42,7 +43,7 @@ private:
 	std::vector<const IUIComponent*> m_uiComponents;
 	utils::unique_ref<UIContext> m_uiContext;
 	utils::unique_ref<DisplayInfo> m_displayInfo;
-	std::unordered_map<ActionCode, std::vector<std::string>> m_inputActionMap;
+	std::unordered_map<ActionCode, InputActionsT> m_inputActionMap;
 	std::unordered_map<UIComponentType, std::string> m_uiComponentTypeMap;
 	utils::unique_ref<AttributesMap> m_attributesMap;
 };

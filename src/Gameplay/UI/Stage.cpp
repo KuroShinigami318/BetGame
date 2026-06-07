@@ -115,7 +115,7 @@ bool Stage::ProcessInput(const std::string& i_input) const
 void Stage::InitializeInputHints(IInputHints& i_inputHints) const
 {
 	const std::string maxCardIndex(1, '0' + m_cardComponents.size());
-	i_inputHints.AddHint(ActionCode::Enter, "[Enter]: Roll Cards");
+	i_inputHints.AddHint(ActionCode::Enter, "Roll Cards");
 	i_inputHints.AddHint(ActionCode::Custom, utils::Format("[1-{}]: Place Bet on Card", maxCardIndex), [maxCardIndex](const std::string& input)
 	{
 		return input.size() == 1 && input[0] > '0' && input[0] <= maxCardIndex[0];

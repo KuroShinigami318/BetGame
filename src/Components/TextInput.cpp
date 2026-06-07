@@ -101,6 +101,6 @@ bool TextInput::ProcessInput(const std::string& i_input) const
 
 void TextInput::InitializeInputHints(IInputHints& i_inputHints) const
 {
-    i_inputHints.AddHint(ActionCode::Enter, "[Enter]: Confirm Input");
-    i_inputHints.AddHint(ActionCode::BackSpace, "[Backspace]: Delete Last Character");
+    i_inputHints.AddHint(ActionCode::Enter, "Confirm Input");
+    i_inputHints.AddHint(ActionCode::BackSpace, "Delete Last Character");
 }
