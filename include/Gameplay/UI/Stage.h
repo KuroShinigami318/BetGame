@@ -39,6 +39,7 @@ private:
 	bool m_isRollStarted;
 	bool m_isOnAnimation;
 	bool m_isOnLocalAnimation;
+	float m_animationSpeed;
 	std::optional<float> m_currentIndex;
 	utils::unique_ref<utils::TimerDelayer> m_animationDelayer;
 	std::vector<utils::unique_ptr<IUIComponent>> m_cardComponents;

@@ -13,8 +13,13 @@
 namespace
 {
 constexpr const float LOCAL_ANIMATION_DURATION = 3000.f;
-constexpr const float ANIMATION_SPEED = 3.f;
+constexpr const float DEFAULT_ANIMATION_SPEED = 100.f;
 constexpr const uint16_t WIN_INFO_HEIGHT = 3;
+
+bool isnumber(const std::string& s)
+{
+	return !s.empty() && std::all_of(s.begin(), s.end(), ::isdigit);
+}
 }
 
 Stage::Stage(const UIContext& i_uiContext, IStageLogic& i_stageLogic, const uint16_t& i_width, const uint16_t& i_height)
@@ -25,6 +30,7 @@ Stage::Stage(const UIContext& i_uiContext, IStageLogic& i_stageLogic, const uint
 	, m_isRollStarted(false)
 	, m_isOnAnimation(false)
 	, m_isOnLocalAnimation(false)
+	, m_animationSpeed(DEFAULT_ANIMATION_SPEED)
 	, m_currentIndex(std::nullopt)
 	, m_animationDelayer(utils::make_unique<utils::TimerDelayer>(LOCAL_ANIMATION_DURATION))
 	, m_winInfoRenderStyle(utils::make_unique<LabelRenderStyle>())
@@ -78,7 +84,11 @@ void Stage::Render(RendererT& o_renderStream) const
 bool Stage::ProcessInput(const std::string& i_input) const
 {
 	static bool toggleIgnoreHitRate = false;
-	const char maxCardIndex = '0' + m_cardComponents.size();
+	size_t parsedNumber = 0;
+	if (isnumber(i_input))
+	{
+		parsedNumber = std::stoull(i_input);
+	}
 	switch (i_input[0])
 	{
 	NOT_RELEASE(
@@ -88,9 +98,9 @@ bool Stage::ProcessInput(const std::string& i_input) const
 		return true;
 	})
 	default:
-	if (i_input[0] > '0' && i_input[0] <= maxCardIndex)
+	if (parsedNumber > 0 && parsedNumber <= m_cardComponents.size())
 	{
-		uint8_t cardIndex = i_input[0] - '1';
+		uint8_t cardIndex = parsedNumber - 1;
 		m_stageLogic.BidOnCard(cardIndex, 1);
 		return true;
 	}
@@ -114,11 +124,15 @@ bool Stage::ProcessInput(const std::string& i_input) const
 
 void Stage::InitializeInputHints(IInputHints& i_inputHints) const
 {
-	const std::string maxCardIndex(1, '0' + m_cardComponents.size());
 	i_inputHints.AddHint(ActionCode::Enter, "Roll Cards");
-	i_inputHints.AddHint(ActionCode::Custom, utils::Format("[1-{}]: Place Bet on Card", maxCardIndex), [maxCardIndex](const std::string& input)
+	i_inputHints.AddHint(ActionCode::Custom, utils::Format("[1-{}]: Place Bet on Card", m_cardComponents.size()), [this](const std::string& input)
 	{
-		return input.size() == 1 && input[0] > '0' && input[0] <= maxCardIndex[0];
+		size_t parsedNumber = 0;
+		if (isnumber(input))
+		{
+			parsedNumber = std::stoull(input);
+		}
+		return parsedNumber > 0 && parsedNumber <= m_cardComponents.size();
 	});
 }
 
@@ -141,7 +155,8 @@ void Stage::Update(float delta)
 		return;
 	}
 	m_cardComponents[currentCardIndex]->OnFocusLost();
-	*m_currentIndex += delta * ANIMATION_SPEED;
+	*m_currentIndex += delta * m_animationSpeed;
+	m_animationSpeed -= delta * DEFAULT_ANIMATION_SPEED / (LOCAL_ANIMATION_DURATION / 1000.f);
 	m_cardComponents[size_t(m_currentIndex.value()) % m_cardComponents.size()]->OnFocusGained();
 }
 
@@ -172,6 +187,7 @@ void Stage::OnStagePhaseChanged(const logic::StagePhase& i_phase)
 	{
 	case logic::StagePhase::RollStarted:
 	{
+		m_animationSpeed = DEFAULT_ANIMATION_SPEED;
 		m_isOnAnimation = true;
 		m_isOnLocalAnimation = true;
 		m_animationDelayer->Reset();
